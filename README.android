@@ -1,0 +1,5 @@
+This package is imported to Android and uses Android's external/grpc-grpc
+header files and compilation flags to generate bindings.
+
+If features are changed for the grpcio-sys crate, please ensure those
+features are changed in the grpcio_bindgen_build module.
