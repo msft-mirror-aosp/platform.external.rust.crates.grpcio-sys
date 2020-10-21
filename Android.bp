@@ -25,10 +25,9 @@ rust_library {
 cc_defaults {
     name: "libgrpcio_sys_defaults",
     cflags: [
-        "-xc++",
-        "-std=c++11",
         "-DGRPC_SYS_SECURE",
     ],
+    cpp_std: "c++11",
     shared_libs: ["libgrpc++"],
 }
 
