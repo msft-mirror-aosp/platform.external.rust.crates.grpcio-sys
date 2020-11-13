@@ -1,0 +1,97 @@
+--- Android.bp	2020-10-30 19:20:08.709277813 -0700
++++ Android.bp	2020-10-30 19:17:57.837789872 -0700
+@@ -4,7 +4,10 @@
+     name: "libgrpcio_sys",
+     host_supported: true,
+     crate_name: "grpcio_sys",
+-    srcs: ["src/lib.rs"],
++    srcs: [
++        "src/lib.rs",
++        ":libgrpc_bindgen",
++    ],
+     edition: "2018",
+     features: [
+         "default",
+@@ -14,32 +17,57 @@
+         "liblibc",
+         "liblibz_sys",
+     ],
+-    static_libs: [
+-        "libabsl_bad_optional_access",
+-        "libabsl_base",
+-        "libabsl_civil_time",
+-        "libabsl_dynamic_annotations",
+-        "libabsl_int128",
+-        "libabsl_log_severity",
+-        "libabsl_raw_logging_internal",
+-        "libabsl_spinlock_wait",
+-        "libabsl_str_format_internal",
+-        "libabsl_strings",
+-        "libabsl_strings_internal",
+-        "libabsl_throw_delegate",
+-        "libabsl_time",
+-        "libabsl_time_zone",
+-        "libaddress_sorting",
+-        "libcares",
+-        "libcrypto",
+-        "libgpr",
+-        "libgrpc",
+-        "libgrpc_wrap",
+-        "libssl",
+-        "libupb",
+-        "libz",
++    shared_libs: [
++        "libgrpc++",
++        "libgrpc_wrap"
++    ],
++}
++
++cc_defaults {
++    name: "libgrpcio_sys_defaults",
++    cflags: [
++        "-DGRPC_SYS_SECURE",
+     ],
+-    shared_libs: ["libstdc++"],
++    cpp_std: "c++11",
++    shared_libs: ["libgrpc++"],
++}
++
++cc_library {
++    name: "libgrpc_wrap",
++    defaults: ["libgrpcio_sys_defaults"],
++    host_supported: true,
++    srcs: ["grpc_wrap.cc"],
++}
++
++rust_bindgen {
++    name: "libgrpc_bindgen",
++    defaults: ["libgrpcio_sys_defaults"],
++    host_supported: true,
++    wrapper_src: "android/bindgen_wrapper.hpp",
++    source_stem: "grpc-bindings",
++    crate_name: "grpc_bindgen",
++    bindgen_flags: [
++        "--size_t-is-usize",
++        "--constified-enum-module grpc_status_code",
++        "--default-enum-style rust",
++        "--whitelist-function=\\bgrpc_.*",
++        "--whitelist-function=\\bgpr_.*",
++        "--whitelist-function=gpr_inf_future",
++        "--whitelist-function=\\bgrpcwrap_.*",
++        "--whitelist-var=\\bGRPC_.*",
++        "--whitelist-type=\\bgrpc_.*",
++        "--whitelist-type=\\bgpr_.*",
++        "--whitelist-type=\\bgrpcwrap_.*",
++        "--whitelist-type=\\bcensus_context.*",
++        "--whitelist-type=\\bverify_peer_options.*",
++        "--blacklist-type=(__)?pthread.*",
++        "--blacklist-function=\\bgpr_mu_.*",
++        "--blacklist-function=\\bgpr_cv_.*",
++        "--blacklist-function=\\bgpr_once_.*",
++        "--blacklist-type=gpr_mu",
++        "--blacklist-type=gpr_cv",
++        "--blacklist-type=gpr_once",
++    ]
+ }
+ 
+ // dependent_library ["feature_list"]
