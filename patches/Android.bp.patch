@@ -1,6 +1,8 @@
---- Android.bp	2020-10-30 19:20:08.709277813 -0700
-+++ Android.bp	2020-10-30 19:17:57.837789872 -0700
-@@ -4,7 +4,10 @@
+diff --git a/Android.bp b/Android.bp
+index 40ed7bc..12928a0 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -4,7 +4,10 @@ rust_library {
      name: "libgrpcio_sys",
      host_supported: true,
      crate_name: "grpcio_sys",
@@ -12,22 +14,37 @@
      edition: "2018",
      features: [
          "default",
-@@ -14,32 +17,57 @@
+@@ -14,48 +17,56 @@ rust_library {
          "liblibc",
          "liblibz_sys",
      ],
 -    static_libs: [
 -        "libabsl_bad_optional_access",
+-        "libabsl_bad_variant_access",
 -        "libabsl_base",
+-        "libabsl_city",
 -        "libabsl_civil_time",
+-        "libabsl_cord",
+-        "libabsl_debugging_internal",
+-        "libabsl_demangle_internal",
 -        "libabsl_dynamic_annotations",
+-        "libabsl_exponential_biased",
+-        "libabsl_graphcycles_internal",
+-        "libabsl_hash",
+-        "libabsl_hashtablez_sampler",
 -        "libabsl_int128",
 -        "libabsl_log_severity",
+-        "libabsl_malloc_internal",
+-        "libabsl_raw_hash_set",
 -        "libabsl_raw_logging_internal",
 -        "libabsl_spinlock_wait",
+-        "libabsl_stacktrace",
+-        "libabsl_status",
 -        "libabsl_str_format_internal",
 -        "libabsl_strings",
 -        "libabsl_strings_internal",
+-        "libabsl_symbolize",
+-        "libabsl_synchronization",
 -        "libabsl_throw_delegate",
 -        "libabsl_time",
 -        "libabsl_time_zone",
@@ -37,21 +54,22 @@
 -        "libgpr",
 -        "libgrpc",
 -        "libgrpc_wrap",
+-        "libre2",
 -        "libssl",
 -        "libupb",
 -        "libz",
 +    shared_libs: [
 +        "libgrpc++",
 +        "libgrpc_wrap"
-+    ],
+     ],
+-    shared_libs: ["libstdc++"],
 +}
 +
 +cc_defaults {
 +    name: "libgrpcio_sys_defaults",
 +    cflags: [
 +        "-DGRPC_SYS_SECURE",
-     ],
--    shared_libs: ["libstdc++"],
++    ],
 +    cpp_std: "c++11",
 +    shared_libs: ["libgrpc++"],
 +}
@@ -76,7 +94,6 @@
 +        "--default-enum-style rust",
 +        "--whitelist-function=\\bgrpc_.*",
 +        "--whitelist-function=\\bgpr_.*",
-+        "--whitelist-function=gpr_inf_future",
 +        "--whitelist-function=\\bgrpcwrap_.*",
 +        "--whitelist-var=\\bGRPC_.*",
 +        "--whitelist-type=\\bgrpc_.*",
