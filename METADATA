@@ -7,13 +7,13 @@ third_party {
   }
   url {
     type: ARCHIVE
-    value: "https://static.crates.io/crates/grpcio-sys/grpcio-sys-0.6.0.crate"
+    value: "https://static.crates.io/crates/grpcio-sys/grpcio-sys-0.7.2.crate"
   }
-  version: "0.6.0"
+  version: "0.7.2"
   license_type: NOTICE
   last_upgrade_date {
     year: 2020
-    month: 10
-    day: 14
+    month: 12
+    day: 18
   }
 }
