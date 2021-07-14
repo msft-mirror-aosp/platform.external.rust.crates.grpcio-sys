@@ -14,7 +14,7 @@ index 45707bc..d0369e6 100644
      edition: "2018",
      features: [
          "bindgen",
-@@ -50,50 +53,58 @@ rust_library {
+@@ -50,51 +53,58 @@ rust_library {
          "liblibc",
          "liblibz_sys",
      ],
@@ -48,6 +48,7 @@ index 45707bc..d0369e6 100644
 -        "libabsl_throw_delegate",
 -        "libabsl_time",
 -        "libabsl_time_zone",
+-        "libabsl_wyhash",
 -        "libaddress_sorting",
 -        "libcares",
 -        "libcrypto",
