@@ -14,7 +14,7 @@ index 45707bc..d0369e6 100644
      edition: "2018",
      features: [
          "bindgen",
-@@ -52,47 +55,54 @@
+@@ -52,47 +55,64 @@
          "liblibc",
          "liblibz_sys",
      ],
@@ -110,4 +110,14 @@ index 45707bc..d0369e6 100644
 +        "--blocklist-type=gpr_cv",
 +        "--blocklist-type=gpr_once",
 +    ]
++}
++
++rust_test {
++    name: "libgrpc_bindgen_test",
++    srcs: [":libgrpc_bindgen"],
++    crate_name: "grpc_bindgen_test",
++    test_suites: ["general-tests"],
++    auto_gen_config: true,
++    clippy_lints: "none",
++    lints: "none",
  }
