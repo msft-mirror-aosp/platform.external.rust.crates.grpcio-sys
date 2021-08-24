@@ -106,3 +106,13 @@ rust_bindgen {
         "--blocklist-type=gpr_once",
     ]
 }
+
+rust_test {
+    name: "libgrpc_bindgen_test",
+    srcs: [":libgrpc_bindgen"],
+    crate_name: "grpc_bindgen_test",
+    test_suites: ["general-tests"],
+    auto_gen_config: true,
+    clippy_lints: "none",
+    lints: "none",
+}
