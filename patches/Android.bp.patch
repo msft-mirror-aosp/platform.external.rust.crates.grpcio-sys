@@ -2,10 +2,10 @@ diff --git a/Android.bp b/Android.bp
 index 45707bc..d0369e6 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -38,7 +38,10 @@ rust_library {
-     name: "libgrpcio_sys",
-     host_supported: true,
+@@ -40,7 +40,10 @@
      crate_name: "grpcio_sys",
+     cargo_env_compat: true,
+     cargo_pkg_version: "0.9.0+1.38.0",
 -    srcs: ["src/lib.rs"],
 +    srcs: [
 +        "src/lib.rs",
@@ -14,7 +14,7 @@ index 45707bc..d0369e6 100644
      edition: "2018",
      features: [
          "bindgen",
-@@ -50,51 +53,58 @@ rust_library {
+@@ -52,47 +55,64 @@
          "liblibc",
          "liblibz_sys",
      ],
@@ -80,8 +80,8 @@ index 45707bc..d0369e6 100644
 +    defaults: ["libgrpcio_sys_defaults"],
 +    host_supported: true,
 +    srcs: ["grpc_wrap.cc"],
- }
- 
++}
++
 +rust_bindgen {
 +    name: "libgrpc_bindgen",
 +    defaults: ["libgrpcio_sys_defaults"],
@@ -110,8 +110,14 @@ index 45707bc..d0369e6 100644
 +        "--blocklist-type=gpr_cv",
 +        "--blocklist-type=gpr_once",
 +    ]
-+ }
++}
 +
- // dependent_library ["feature_list"]
- //   bindgen-0.57.0 "runtime"
- //   bitflags-1.2.1 "default"
++rust_test {
++    name: "libgrpc_bindgen_test",
++    srcs: [":libgrpc_bindgen"],
++    crate_name: "grpc_bindgen_test",
++    test_suites: ["general-tests"],
++    auto_gen_config: true,
++    clippy_lints: "none",
++    lints: "none",
+ }
