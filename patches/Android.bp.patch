@@ -5,7 +5,7 @@ index 45707bc..d0369e6 100644
 @@ -40,7 +40,10 @@
      crate_name: "grpcio_sys",
      cargo_env_compat: true,
-     cargo_pkg_version: "0.9.0+1.38.0",
+     cargo_pkg_version: "0.9.1+1.38.0",
 -    srcs: ["src/lib.rs"],
 +    srcs: [
 +        "src/lib.rs",
