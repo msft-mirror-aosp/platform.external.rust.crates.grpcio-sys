@@ -14,7 +14,7 @@ index 45707bc..d0369e6 100644
      edition: "2018",
      features: [
          "bindgen",
-@@ -52,47 +55,64 @@
+@@ -55,52 +55,74 @@
          "liblibc",
          "liblibz_sys",
      ],
@@ -62,17 +62,27 @@ index 45707bc..d0369e6 100644
 +    shared_libs: [
 +        "libgrpc++",
 +        "libgrpc_wrap"
-+     ],
-+}
+     ],
+-    shared_libs: ["libstdc++"],
+     apex_available: [
+         "//apex_available:platform",
+         "com.android.bluetooth",
+     ],
+     min_sdk_version: "29",
+ }
 +
 +cc_defaults {
 +    name: "libgrpcio_sys_defaults",
 +    cflags: [
 +        "-DGRPC_SYS_SECURE",
-     ],
--    shared_libs: ["libstdc++"],
++    ],
 +    cpp_std: "c++11",
 +    shared_libs: ["libgrpc++"],
++    apex_available: [
++        "//apex_available:platform",
++        "com.android.bluetooth",
++    ],
++    min_sdk_version: "29",
 +}
 +
 +cc_library {
@@ -120,4 +130,4 @@ index 45707bc..d0369e6 100644
 +    auto_gen_config: true,
 +    clippy_lints: "none",
 +    lints: "none",
- }
++}
