@@ -58,7 +58,12 @@ rust_library {
     shared_libs: [
         "libgrpc++",
         "libgrpc_wrap"
-     ],
+    ],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "29",
 }
 
 cc_defaults {
@@ -68,6 +73,11 @@ cc_defaults {
     ],
     cpp_std: "c++11",
     shared_libs: ["libgrpc++"],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth",
+    ],
+    min_sdk_version: "29",
 }
 
 cc_library {
