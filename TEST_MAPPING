@@ -4,5 +4,10 @@
     {
       "name": "libgrpc_bindgen_test"
     }
+  ],
+  "presubmit-rust": [
+    {
+      "name": "libgrpc_bindgen_test"
+    }
   ]
 }
