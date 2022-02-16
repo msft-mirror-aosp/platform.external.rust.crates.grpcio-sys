@@ -66,8 +66,7 @@ cc_library(
     ],
     copts = ABSL_DEFAULT_COPTS,
     linkopts = ABSL_DEFAULT_LINKOPTS + select({
-        "//absl:msvc_compiler": ["-DEFAULTLIB:dbghelp.lib"],
-        "//absl:clang-cl_compiler": ["-DEFAULTLIB:dbghelp.lib"],
+        "//absl:windows": ["-DEFAULTLIB:dbghelp.lib"],
         "//conditions:default": [],
     }),
     deps = [
@@ -87,13 +86,11 @@ cc_test(
     name = "symbolize_test",
     srcs = ["symbolize_test.cc"],
     copts = ABSL_TEST_COPTS + select({
-        "//absl:msvc_compiler": ["/Z7"],
-        "//absl:clang-cl_compiler": ["/Z7"],
+        "//absl:windows": ["/Z7"],
         "//conditions:default": [],
     }),
     linkopts = ABSL_DEFAULT_LINKOPTS + select({
-        "//absl:msvc_compiler": ["/DEBUG"],
-        "//absl:clang-cl_compiler": ["/DEBUG"],
+        "//absl:windows": ["/DEBUG"],
         "//conditions:default": [],
     }),
     deps = [
@@ -151,8 +148,7 @@ cc_test(
     srcs = ["failure_signal_handler_test.cc"],
     copts = ABSL_TEST_COPTS,
     linkopts = select({
-        "//absl:msvc_compiler": [],
-        "//absl:clang-cl_compiler": [],
+        "//absl:windows": [],
         "//absl:wasm": [],
         "//conditions:default": ["-pthread"],
     }) + ABSL_DEFAULT_LINKOPTS,
@@ -243,7 +239,7 @@ cc_library(
 # These targets exists for use in tests only, explicitly configuring the
 # LEAK_SANITIZER macro. It must be linked with -fsanitize=leak for lsan.
 ABSL_LSAN_LINKOPTS = select({
-    "//absl:clang_compiler": ["-fsanitize=leak"],
+    "//absl:llvm_compiler": ["-fsanitize=leak"],
     "//conditions:default": [],
 })
 
@@ -253,14 +249,13 @@ cc_library(
     srcs = ["leak_check.cc"],
     hdrs = ["leak_check.h"],
     copts = select({
-        "//absl:clang_compiler": ["-DLEAK_SANITIZER"],
+        "//absl:llvm_compiler": ["-DLEAK_SANITIZER"],
         "//conditions:default": [],
     }),
     linkopts = ABSL_DEFAULT_LINKOPTS,
     visibility = ["//visibility:private"],
     deps = [
         "//absl/base:config",
-        "//absl/base:core_headers",
     ],
 )
 
@@ -274,7 +269,6 @@ cc_library(
     visibility = ["//visibility:private"],
     deps = [
         "//absl/base:config",
-        "//absl/base:core_headers",
     ],
 )
 
@@ -282,7 +276,7 @@ cc_test(
     name = "leak_check_test",
     srcs = ["leak_check_test.cc"],
     copts = select({
-        "//absl:clang_compiler": ["-DABSL_EXPECT_LEAK_SANITIZER"],
+        "//absl:llvm_compiler": ["-DABSL_EXPECT_LEAK_SANITIZER"],
         "//conditions:default": [],
     }),
     linkopts = ABSL_LSAN_LINKOPTS + ABSL_DEFAULT_LINKOPTS,
