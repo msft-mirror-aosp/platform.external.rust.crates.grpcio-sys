@@ -17,8 +17,9 @@
 
 FROM quay.io/pypa/manylinux2014_i686
 
-# TODO(jtattermusch): revisit which of the deps are really required
-RUN yum update -y && yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
+# Update the package manager
+RUN yum update -y
+RUN yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
 
 ###################################
 # Install Python build requirements
