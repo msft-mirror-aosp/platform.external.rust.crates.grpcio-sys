@@ -47,8 +47,7 @@ class ServiceConfigParser {
     virtual ~Parser() = default;
 
     virtual std::unique_ptr<ParsedConfig> ParseGlobalParams(
-        const grpc_channel_args*, const Json& /* json */,
-        grpc_error_handle* error) {
+        const grpc_channel_args*, const Json& /* json */, grpc_error** error) {
       // Avoid unused parameter warning on debug-only parameter
       (void)error;
       GPR_DEBUG_ASSERT(error != nullptr);
@@ -56,8 +55,7 @@ class ServiceConfigParser {
     }
 
     virtual std::unique_ptr<ParsedConfig> ParsePerMethodParams(
-        const grpc_channel_args*, const Json& /* json */,
-        grpc_error_handle* error) {
+        const grpc_channel_args*, const Json& /* json */, grpc_error** error) {
       // Avoid unused parameter warning on debug-only parameter
       (void)error;
       GPR_DEBUG_ASSERT(error != nullptr);
@@ -83,11 +81,10 @@ class ServiceConfigParser {
 
   static ParsedConfigVector ParseGlobalParameters(const grpc_channel_args* args,
                                                   const Json& json,
-                                                  grpc_error_handle* error);
+                                                  grpc_error** error);
 
   static ParsedConfigVector ParsePerMethodParameters(
-      const grpc_channel_args* args, const Json& json,
-      grpc_error_handle* error);
+      const grpc_channel_args* args, const Json& json, grpc_error** error);
 };
 
 }  // namespace grpc_core

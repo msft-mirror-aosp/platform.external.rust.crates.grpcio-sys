@@ -21,6 +21,8 @@
 
 #include "src/compiler/config.h"
 
+#include <google/protobuf/compiler/csharp/csharp_names.h>
+
 namespace grpc_csharp_generator {
 
 std::string GetServices(const grpc::protobuf::FileDescriptor* file,

@@ -29,30 +29,32 @@ namespace testing {
 
 namespace {
 
-StringMatcher ExactMatcher(const char* string) {
-  return StringMatcher::Create(StringMatcher::Type::kExact, string).value();
+XdsApi::StringMatcher ExactMatcher(const char* string) {
+  return XdsApi::StringMatcher(XdsApi::StringMatcher::StringMatcherType::EXACT,
+                               string);
 }
 
-StringMatcher PrefixMatcher(const char* string, bool case_sensitive = true) {
-  return StringMatcher::Create(StringMatcher::Type::kPrefix, string,
-                               case_sensitive)
-      .value();
+XdsApi::StringMatcher PrefixMatcher(const char* string,
+                                    bool ignore_case = false) {
+  return XdsApi::StringMatcher(XdsApi::StringMatcher::StringMatcherType::PREFIX,
+                               string, ignore_case);
 }
 
-StringMatcher SuffixMatcher(const char* string, bool case_sensitive = true) {
-  return StringMatcher::Create(StringMatcher::Type::kSuffix, string,
-                               case_sensitive)
-      .value();
+XdsApi::StringMatcher SuffixMatcher(const char* string,
+                                    bool ignore_case = false) {
+  return XdsApi::StringMatcher(XdsApi::StringMatcher::StringMatcherType::SUFFIX,
+                               string, ignore_case);
 }
 
-StringMatcher ContainsMatcher(const char* string, bool case_sensitive = true) {
-  return StringMatcher::Create(StringMatcher::Type::kContains, string,
-                               case_sensitive)
-      .value();
+XdsApi::StringMatcher ContainsMatcher(const char* string,
+                                      bool ignore_case = false) {
+  return XdsApi::StringMatcher(
+      XdsApi::StringMatcher::StringMatcherType::CONTAINS, string, ignore_case);
 }
 
-StringMatcher SafeRegexMatcher(const char* string) {
-  return StringMatcher::Create(StringMatcher::Type::kSafeRegex, string).value();
+XdsApi::StringMatcher SafeRegexMatcher(const char* string) {
+  return XdsApi::StringMatcher(
+      XdsApi::StringMatcher::StringMatcherType::SAFE_REGEX, string);
 }
 
 TEST(XdsSanMatchingTest, EmptySansList) {
@@ -208,15 +210,15 @@ TEST(XdsSanMatchingTest, PrefixMatchIgnoreCase) {
   std::vector<const char*> sans = {"aBc.cOm"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {PrefixMatcher("AbC", false /* case_sensitive */)}));
+      {PrefixMatcher("AbC", true /* ignore_case */)}));
   sans = {"abc.com"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {PrefixMatcher("AbC", false /* case_sensitive */)}));
+      {PrefixMatcher("AbC", true /* ignore_case */)}));
   sans = {"xyz.com"};
   EXPECT_FALSE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {PrefixMatcher("AbC", false /* case_sensitive */)}));
+      {PrefixMatcher("AbC", true /* ignore_case */)}));
 }
 
 TEST(XdsSanMatchingTest, SuffixMatch) {
@@ -235,15 +237,15 @@ TEST(XdsSanMatchingTest, SuffixMatchIgnoreCase) {
   std::vector<const char*> sans = {"abc.com"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {SuffixMatcher(".CoM", false /* case_sensitive */)}));
+      {SuffixMatcher(".CoM", true /* ignore_case */)}));
   sans = {"AbC.cOm"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {SuffixMatcher(".CoM", false /* case_sensitive */)}));
+      {SuffixMatcher(".CoM", true /* ignore_case */)}));
   sans = {"abc.xyz"};
   EXPECT_FALSE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {SuffixMatcher(".CoM", false /* case_sensitive */)}));
+      {SuffixMatcher(".CoM", true /* ignore_case */)}));
 }
 
 TEST(XdsSanMatchingTest, ContainsMatch) {
@@ -262,19 +264,19 @@ TEST(XdsSanMatchingTest, ContainsMatchIgnoresCase) {
   std::vector<const char*> sans = {"abc.com"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {ContainsMatcher("AbC", false /* case_sensitive */)}));
+      {ContainsMatcher("AbC", true /* ignore_case */)}));
   sans = {"xyz.abc.com"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {ContainsMatcher("AbC", false /* case_sensitive */)}));
+      {ContainsMatcher("AbC", true /* ignore_case */)}));
   sans = {"foo.aBc.com"};
   EXPECT_TRUE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {ContainsMatcher("AbC", false /* case_sensitive */)}));
+      {ContainsMatcher("AbC", true /* ignore_case */)}));
   sans = {"foo.Ab.com"};
   EXPECT_FALSE(TestOnlyXdsVerifySubjectAlternativeNames(
       sans.data(), sans.size(),
-      {ContainsMatcher("AbC", false /* case_sensitive */)}));
+      {ContainsMatcher("AbC", true /* ignore_case */)}));
 }
 
 TEST(XdsSanMatchingTest, RegexMatch) {

@@ -48,12 +48,9 @@ class GuardValidator(object):
         self.endif_re = re.compile(r'#endif  // ([A-Z][A-Z_1-9]*)')
         self.failed = False
 
-    def _is_c_core_header(self, fpath):
-        return 'include' in fpath and not ('grpc++' in fpath or 'grpcpp'
-                                           in fpath or 'event_engine' in fpath)
-
     def fail(self, fpath, regexp, fcontents, match_txt, correct, fix):
-        c_core_header = self._is_c_core_header(fpath)
+        c_core_header = 'include' in fpath and not ('grpc++' in fpath or
+                                                    'grpcpp' in fpath)
         self.failed = True
         invalid_guards_msg_template = (
             '{0}: Missing preprocessor guards (RE {1}). '
@@ -84,7 +81,8 @@ class GuardValidator(object):
         return fcontents
 
     def check(self, fpath, fix):
-        c_core_header = self._is_c_core_header(fpath)
+        c_core_header = 'include' in fpath and not ('grpc++' in fpath or
+                                                    'grpcpp' in fpath)
         valid_guard = build_valid_guard(fpath)
 
         fcontents = load(fpath)
@@ -103,15 +101,13 @@ class GuardValidator(object):
         if not running_guard.endswith('_H'):
             fcontents = self.fail(fpath, match.re, match.string, match.group(1),
                                   valid_guard, fix)
-            if fix:
-                save(fpath, fcontents)
+            if fix: save(fpath, fcontents)
 
         # Is it the expected one based on the file path?
         if running_guard != valid_guard:
             fcontents = self.fail(fpath, match.re, match.string, match.group(1),
                                   valid_guard, fix)
-            if fix:
-                save(fpath, fcontents)
+            if fix: save(fpath, fcontents)
 
         # Is there a #define? Is it the same as the #ifndef one?
         match = self.define_re.search(fcontents)
@@ -124,8 +120,7 @@ class GuardValidator(object):
         if match.group(1) != running_guard:
             fcontents = self.fail(fpath, match.re, match.string, match.group(1),
                                   valid_guard, fix)
-            if fix:
-                save(fpath, fcontents)
+            if fix: save(fpath, fcontents)
 
         # Is there a properly commented #endif?
         flines = fcontents.rstrip().splitlines()
@@ -151,10 +146,9 @@ class GuardValidator(object):
                     flines[-1], '', '', False)
         elif match.group(1) != running_guard:
             # Is the #endif guard the same as the #ifndef and #define guards?
-            fcontents = self.fail(fpath, self.endif_re, fcontents,
-                                  match.group(1), valid_guard, fix)
-            if fix:
-                save(fpath, fcontents)
+            fcontents = self.fail(fpath, endif_re, fcontents, match.group(1),
+                                  valid_guard, fix)
+            if fix: save(fpath, fcontents)
 
         return not self.failed  # Did the check succeed? (ie, not failed)
 
