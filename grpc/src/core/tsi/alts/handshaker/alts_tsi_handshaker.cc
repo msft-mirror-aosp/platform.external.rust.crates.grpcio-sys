@@ -48,23 +48,23 @@ struct alts_tsi_handshaker {
   tsi_handshaker base;
   grpc_slice target_name;
   bool is_client;
-  bool has_sent_start_message = false;
-  bool has_created_handshaker_client = false;
+  bool has_sent_start_message;
+  bool has_created_handshaker_client;
   char* handshaker_service_url;
   grpc_pollset_set* interested_parties;
   grpc_alts_credentials_options* options;
-  alts_handshaker_client_vtable* client_vtable_for_testing = nullptr;
-  grpc_channel* channel = nullptr;
+  alts_handshaker_client_vtable* client_vtable_for_testing;
+  grpc_channel* channel;
   bool use_dedicated_cq;
   // mu synchronizes all fields below. Note these are the
   // only fields that can be concurrently accessed (due to
   // potential concurrency of tsi_handshaker_shutdown and
   // tsi_handshaker_next).
-  grpc_core::Mutex mu;
-  alts_handshaker_client* client = nullptr;
+  gpr_mu mu;
+  alts_handshaker_client* client;
   // shutdown effectively follows base.handshake_shutdown,
   // but is synchronized by the mutex of this object.
-  bool shutdown = false;
+  bool shutdown;
   // Maximum frame size used by frame protector.
   size_t max_frame_size;
 };
@@ -372,8 +372,7 @@ tsi_result alts_tsi_handshaker_result_create(grpc_gcp_HandshakerResp* resp,
 }
 
 /* gRPC provided callback used when gRPC thread model is applied. */
-static void on_handshaker_service_resp_recv(void* arg,
-                                            grpc_error_handle error) {
+static void on_handshaker_service_resp_recv(void* arg, grpc_error* error) {
   alts_handshaker_client* client = static_cast<alts_handshaker_client*>(arg);
   if (client == nullptr) {
     gpr_log(GPR_ERROR, "ALTS handshaker client is nullptr");
@@ -383,7 +382,7 @@ static void on_handshaker_service_resp_recv(void* arg,
   if (error != GRPC_ERROR_NONE) {
     gpr_log(GPR_ERROR,
             "ALTS handshaker on_handshaker_service_resp_recv error: %s",
-            grpc_error_std_string(error).c_str());
+            grpc_error_string(error));
     success = false;
   }
   alts_handshaker_client_handle_response(client, success);
@@ -391,8 +390,8 @@ static void on_handshaker_service_resp_recv(void* arg,
 
 /* gRPC provided callback used when dedicatd CQ and thread are used.
  * It serves to safely bring the control back to application. */
-static void on_handshaker_service_resp_recv_dedicated(
-    void* arg, grpc_error_handle /*error*/) {
+static void on_handshaker_service_resp_recv_dedicated(void* arg,
+                                                      grpc_error* /*error*/) {
   alts_shared_resource_dedicated* resource =
       grpc_alts_get_shared_resource_dedicated();
   grpc_cq_end_op(
@@ -481,8 +480,8 @@ struct alts_tsi_handshaker_continue_handshaker_next_args {
   grpc_closure closure;
 };
 
-static void alts_tsi_handshaker_create_channel(
-    void* arg, grpc_error_handle /* unused_error */) {
+static void alts_tsi_handshaker_create_channel(void* arg,
+                                               grpc_error* /* unused_error */) {
   alts_tsi_handshaker_continue_handshaker_next_args* next_args =
       static_cast<alts_tsi_handshaker_continue_handshaker_next_args*>(arg);
   alts_tsi_handshaker* handshaker = next_args->handshaker;
@@ -593,7 +592,8 @@ static void handshaker_destroy(tsi_handshaker* self) {
     grpc_channel_destroy_internal(handshaker->channel);
   }
   gpr_free(handshaker->handshaker_service_url);
-  delete handshaker;
+  gpr_mu_destroy(&handshaker->mu);
+  gpr_free(handshaker);
 }
 
 static const tsi_handshaker_vtable handshaker_vtable = {
@@ -628,22 +628,26 @@ tsi_result alts_tsi_handshaker_create(
     gpr_log(GPR_ERROR, "Invalid arguments to alts_tsi_handshaker_create()");
     return TSI_INVALID_ARGUMENT;
   }
-  bool use_dedicated_cq = interested_parties == nullptr;
-  alts_tsi_handshaker* handshaker = new alts_tsi_handshaker();
-  memset(&handshaker->base, 0, sizeof(handshaker->base));
-  handshaker->base.vtable =
-      use_dedicated_cq ? &handshaker_vtable_dedicated : &handshaker_vtable;
+  alts_tsi_handshaker* handshaker =
+      static_cast<alts_tsi_handshaker*>(gpr_zalloc(sizeof(*handshaker)));
+  gpr_mu_init(&handshaker->mu);
+  handshaker->use_dedicated_cq = interested_parties == nullptr;
+  handshaker->client = nullptr;
+  handshaker->is_client = is_client;
+  handshaker->has_sent_start_message = false;
   handshaker->target_name = target_name == nullptr
                                 ? grpc_empty_slice()
                                 : grpc_slice_from_static_string(target_name);
-  handshaker->is_client = is_client;
-  handshaker->handshaker_service_url = gpr_strdup(handshaker_service_url);
   handshaker->interested_parties = interested_parties;
+  handshaker->has_created_handshaker_client = false;
+  handshaker->handshaker_service_url = gpr_strdup(handshaker_service_url);
   handshaker->options = grpc_alts_credentials_options_copy(options);
-  handshaker->use_dedicated_cq = use_dedicated_cq;
   handshaker->max_frame_size = user_specified_max_frame_size != 0
                                    ? user_specified_max_frame_size
                                    : kTsiAltsMaxFrameSize;
+  handshaker->base.vtable = handshaker->use_dedicated_cq
+                                ? &handshaker_vtable_dedicated
+                                : &handshaker_vtable;
   *self = &handshaker->base;
   return TSI_OK;
 }
