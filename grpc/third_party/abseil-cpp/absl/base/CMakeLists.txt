@@ -418,7 +418,6 @@ absl_cc_library(
   COPTS
     ${ABSL_DEFAULT_COPTS}
   DEPS
-    absl::base
     absl::config
     absl::core_headers
   PUBLIC
@@ -516,6 +515,30 @@ absl_cc_test(
     absl::core_headers
     absl::synchronization
     Threads::Threads
+    gtest_main
+)
+
+absl_cc_library(
+  NAME
+    bits
+  HDRS
+    "internal/bits.h"
+  COPTS
+    ${ABSL_DEFAULT_COPTS}
+  DEPS
+    absl::config
+    absl::core_headers
+)
+
+absl_cc_test(
+  NAME
+    bits_test
+  SRCS
+    "internal/bits_test.cc"
+  COPTS
+    ${ABSL_TEST_COPTS}
+  DEPS
+    absl::bits
     gtest_main
 )
 
