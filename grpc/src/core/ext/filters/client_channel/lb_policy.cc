@@ -70,9 +70,6 @@ LoadBalancingPolicy::UpdateArgs::UpdateArgs(UpdateArgs&& other) noexcept {
 
 LoadBalancingPolicy::UpdateArgs& LoadBalancingPolicy::UpdateArgs::operator=(
     const UpdateArgs& other) {
-  if (&other == this) {
-    return *this;
-  }
   addresses = other.addresses;
   config = other.config;
   grpc_channel_args_destroy(args);
@@ -113,7 +110,7 @@ LoadBalancingPolicy::PickResult LoadBalancingPolicy::QueuePicker::Pick(
     auto* parent = parent_->Ref().release();  // ref held by lambda.
     ExecCtx::Run(DEBUG_LOCATION,
                  GRPC_CLOSURE_CREATE(
-                     [](void* arg, grpc_error_handle /*error*/) {
+                     [](void* arg, grpc_error* /*error*/) {
                        auto* parent = static_cast<LoadBalancingPolicy*>(arg);
                        parent->work_serializer()->Run(
                            [parent]() {
