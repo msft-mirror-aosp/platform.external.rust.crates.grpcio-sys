@@ -10,6 +10,7 @@
 #include "upb/msg.h"
 #include "envoy/config/listener/v3/udp_listener_config.upb.h"
 #include "google/protobuf/any.upb.h"
+#include "google/protobuf/struct.upb.h"
 #include "udpa/annotations/status.upb.h"
 #include "udpa/annotations/versioning.upb.h"
 

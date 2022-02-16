@@ -210,9 +210,6 @@ class CallbackUnaryHandler : public ::grpc::internal::MethodHandler {
       grpc_call* call = call_.call();
       auto call_requester = std::move(call_requester_);
       allocator_state_->Release();
-      if (ctx_->context_allocator() != nullptr) {
-        ctx_->context_allocator()->Release(ctx_);
-      }
       this->~ServerCallbackUnaryImpl();  // explicitly call destructor
       ::grpc::g_core_codegen_interface->grpc_call_unref(call);
       call_requester();
@@ -405,9 +402,6 @@ class CallbackClientStreamingHandler : public ::grpc::internal::MethodHandler {
       reactor_.load(std::memory_order_relaxed)->OnDone();
       grpc_call* call = call_.call();
       auto call_requester = std::move(call_requester_);
-      if (ctx_->context_allocator() != nullptr) {
-        ctx_->context_allocator()->Release(ctx_);
-      }
       this->~ServerCallbackReaderImpl();  // explicitly call destructor
       ::grpc::g_core_codegen_interface->grpc_call_unref(call);
       call_requester();
@@ -622,11 +616,7 @@ class CallbackServerStreamingHandler : public ::grpc::internal::MethodHandler {
       // DefaultReactor (which is unary).
       this->MaybeDone(/*inlineable_ondone=*/false);
     }
-    ~ServerCallbackWriterImpl() {
-      if (req_ != nullptr) {
-        req_->~RequestType();
-      }
-    }
+    ~ServerCallbackWriterImpl() { req_->~RequestType(); }
 
     const RequestType* request() { return req_; }
 
@@ -634,9 +624,6 @@ class CallbackServerStreamingHandler : public ::grpc::internal::MethodHandler {
       reactor_.load(std::memory_order_relaxed)->OnDone();
       grpc_call* call = call_.call();
       auto call_requester = std::move(call_requester_);
-      if (ctx_->context_allocator() != nullptr) {
-        ctx_->context_allocator()->Release(ctx_);
-      }
       this->~ServerCallbackWriterImpl();  // explicitly call destructor
       ::grpc::g_core_codegen_interface->grpc_call_unref(call);
       call_requester();
@@ -848,9 +835,6 @@ class CallbackBidiHandler : public ::grpc::internal::MethodHandler {
       reactor_.load(std::memory_order_relaxed)->OnDone();
       grpc_call* call = call_.call();
       auto call_requester = std::move(call_requester_);
-      if (ctx_->context_allocator() != nullptr) {
-        ctx_->context_allocator()->Release(ctx_);
-      }
       this->~ServerCallbackReaderWriterImpl();  // explicitly call destructor
       ::grpc::g_core_codegen_interface->grpc_call_unref(call);
       call_requester();
