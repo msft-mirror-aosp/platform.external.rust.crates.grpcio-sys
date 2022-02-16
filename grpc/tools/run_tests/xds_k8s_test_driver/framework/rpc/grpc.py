@@ -29,7 +29,8 @@ Message = google.protobuf.message.Message
 
 class GrpcClientHelper:
     channel: grpc.Channel
-    DEFAULT_RPC_DEADLINE_SEC = 90
+    DEFAULT_CONNECTION_TIMEOUT_SEC = 60
+    DEFAULT_WAIT_FOR_READY_SEC = 60
 
     def __init__(self, channel: grpc.Channel, stub_class: ClassVar):
         self.channel = channel
@@ -43,16 +44,20 @@ class GrpcClientHelper:
             *,
             rpc: str,
             req: Message,
-            deadline_sec: Optional[int] = DEFAULT_RPC_DEADLINE_SEC,
+            wait_for_ready_sec: Optional[int] = DEFAULT_WAIT_FOR_READY_SEC,
+            connection_timeout_sec: Optional[
+                int] = DEFAULT_CONNECTION_TIMEOUT_SEC,
             log_level: Optional[int] = logging.DEBUG) -> Message:
-        if deadline_sec is None:
-            deadline_sec = self.DEFAULT_RPC_DEADLINE_SEC
+        if wait_for_ready_sec is None:
+            wait_for_ready_sec = self.DEFAULT_WAIT_FOR_READY_SEC
+        if connection_timeout_sec is None:
+            connection_timeout_sec = self.DEFAULT_CONNECTION_TIMEOUT_SEC
 
-        call_kwargs = dict(wait_for_ready=True, timeout=deadline_sec)
-        self._log_rpc_request(rpc, req, call_kwargs, log_level)
-
-        # Call RPC, e.g. RpcStub(channel).RpcMethod(req, ...options)
+        timeout_sec = wait_for_ready_sec + connection_timeout_sec
         rpc_callable: grpc.UnaryUnaryMultiCallable = getattr(self.stub, rpc)
+
+        call_kwargs = dict(wait_for_ready=True, timeout=timeout_sec)
+        self._log_rpc_request(rpc, req, call_kwargs, log_level)
         return rpc_callable(req, **call_kwargs)
 
     def _log_rpc_request(self, rpc, req, call_kwargs, log_level=logging.DEBUG):

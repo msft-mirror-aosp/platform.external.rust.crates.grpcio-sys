@@ -81,8 +81,8 @@ class Atomic {
 
   // Atomically increment a counter only if the counter value is not zero.
   // Returns true if increment took place; false if counter is zero.
-  bool IncrementIfNonzero() {
-    T count = storage_.load(std::memory_order_acquire);
+  bool IncrementIfNonzero(MemoryOrder load_order = MemoryOrder::ACQUIRE) {
+    T count = storage_.load(static_cast<std::memory_order>(load_order));
     do {
       // If zero, we are done (without an increment). If not, we must do a CAS
       // to maintain the contract: do not increment the counter if it is already
@@ -91,7 +91,7 @@ class Atomic {
         return false;
       }
     } while (!CompareExchangeWeak(&count, count + 1, MemoryOrder::ACQ_REL,
-                                  MemoryOrder::ACQUIRE));
+                                  load_order));
     return true;
   }
 

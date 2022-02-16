@@ -73,11 +73,6 @@ argp.add_argument('-t',
                   default=False,
                   action='store_const',
                   const=True)
-argp.add_argument('-x',
-                  '--xml_report',
-                  default='report_taskrunner_sponge_log.xml',
-                  type=str,
-                  help='Filename for the JUnit-compatible XML report')
 
 args = argp.parse_args()
 
@@ -114,7 +109,7 @@ num_failures, resultset = jobset.run(build_jobs,
                                      newline_on_success=True,
                                      maxjobs=args.jobs)
 report_utils.render_junit_xml_report(resultset,
-                                     args.xml_report,
+                                     'report_taskrunner_sponge_log.xml',
                                      suite_name='tasks')
 if num_failures == 0:
     jobset.message('SUCCESS',
