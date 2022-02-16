@@ -24,9 +24,7 @@ absl_cc_library(
     "internal/hash.h"
   COPTS
     ${ABSL_DEFAULT_COPTS}
-    DEPS
-    absl::city
-    absl::config
+  DEPS
     absl::core_headers
     absl::endian
     absl::fixed_array
@@ -36,7 +34,7 @@ absl_cc_library(
     absl::optional
     absl::variant
     absl::utility
-    absl::wyhash
+    absl::city
   PUBLIC
 )
 
@@ -116,30 +114,3 @@ absl_cc_test(
     gmock_main
 )
 
-absl_cc_library(
-  NAME
-    wyhash
-  HDRS
-    "internal/wyhash.h"
-  SRCS
-    "internal/wyhash.cc"
-  COPTS
-    ${ABSL_DEFAULT_COPTS}
-  DEPS
-    absl::config
-    absl::endian
-    absl::int128
-)
-
-absl_cc_test(
-  NAME
-    wyhash_test
-  SRCS
-    "internal/wyhash_test.cc"
-  COPTS
-    ${ABSL_TEST_COPTS}
-  DEPS
-    absl::wyhash
-    absl::strings
-    gmock_main
-)
