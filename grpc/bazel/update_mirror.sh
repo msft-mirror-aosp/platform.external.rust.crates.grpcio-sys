@@ -34,18 +34,13 @@ trap cleanup EXIT
 function upload {
   local file="$1"
 
-  if gsutil stat "gs://grpc-bazel-mirror/${file}" > /dev/null
-  then
-    echo "Skipping ${file}"
-  else
-    echo "Downloading https://${file}"
-    curl -L --fail --output "${tmpdir}/archive" "https://${file}"
+  echo "Downloading https://${file}"
+  curl -L --fail --output "${tmpdir}/archive" "https://${file}"
 
-    echo "Uploading https://${file} to https://storage.googleapis.com/grpc-bazel-mirror/${file}"
-    gsutil cp "${tmpdir}/archive" "gs://grpc-bazel-mirror/${file}"
+  echo "Uploading https://${file} to https://storage.googleapis.com/grpc-bazel-mirror/${file}"
+  gsutil cp -n "${tmpdir}/archive" "gs://grpc-bazel-mirror/${file}"  # "-n" will skip existing files
 
-    rm -rf "${tmpdir}/archive"
-  fi
+  rm -rf "${tmpdir}/archive"
 }
 
 # How to check that all mirror URLs work:

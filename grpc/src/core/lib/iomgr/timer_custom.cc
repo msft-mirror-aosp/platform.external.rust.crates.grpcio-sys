@@ -30,8 +30,7 @@
 
 static grpc_custom_timer_vtable* custom_timer_impl;
 
-void grpc_custom_timer_callback(grpc_custom_timer* t,
-                                grpc_error_handle /*error*/) {
+void grpc_custom_timer_callback(grpc_custom_timer* t, grpc_error* /*error*/) {
   GRPC_CUSTOM_IOMGR_ASSERT_SAME_THREAD();
   grpc_core::ApplicationCallbackExecCtx callback_exec_ctx;
   grpc_core::ExecCtx exec_ctx;

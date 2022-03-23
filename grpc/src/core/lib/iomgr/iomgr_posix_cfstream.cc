@@ -40,6 +40,7 @@
 #include "src/core/lib/iomgr/ev_apple.h"
 #include "src/core/lib/iomgr/ev_posix.h"
 #include "src/core/lib/iomgr/iomgr_internal.h"
+#include "src/core/lib/iomgr/iomgr_posix.h"
 #include "src/core/lib/iomgr/resolve_address.h"
 #include "src/core/lib/iomgr/tcp_client.h"
 #include "src/core/lib/iomgr/tcp_posix.h"
@@ -72,7 +73,7 @@ static bool apple_iomgr_platform_is_any_background_poller_thread(void) {
 }
 
 static bool apple_iomgr_platform_add_closure_to_background_poller(
-    grpc_closure* closure, grpc_error_handle error) {
+    grpc_closure* closure, grpc_error* error) {
   return false;
 }
 
@@ -105,7 +106,7 @@ static bool iomgr_platform_is_any_background_poller_thread(void) {
 }
 
 static bool iomgr_platform_add_closure_to_background_poller(
-    grpc_closure* closure, grpc_error_handle error) {
+    grpc_closure* closure, grpc_error* error) {
   return grpc_add_closure_to_background_poller(closure, error);
 }
 
