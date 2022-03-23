@@ -14,6 +14,7 @@
 #include "google/protobuf/duration.upb.h"
 #include "udpa/annotations/status.upb.h"
 #include "udpa/annotations/versioning.upb.h"
+#include "validate/validate.upb.h"
 
 #include "upb/port_def.inc"
 

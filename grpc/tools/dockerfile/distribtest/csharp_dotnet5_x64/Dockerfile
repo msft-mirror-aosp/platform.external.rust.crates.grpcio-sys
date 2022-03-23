@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# "5.0.x" tag uses debian buster
-# we use the full version number to make docker image version updates explicit
-FROM mcr.microsoft.com/dotnet/sdk:5.0.103
+# "5.0" tag uses debian buster
+FROM mcr.microsoft.com/dotnet/sdk:5.0
 
 RUN apt-get update && apt-get install -y unzip && apt-get clean
 
