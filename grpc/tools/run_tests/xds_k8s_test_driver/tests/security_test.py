@@ -109,8 +109,7 @@ class SecurityTest(xds_k8s_testcase.SecurityXdsKubernetesTestCase):
         been received as confirmed by the TD team.
         """
         # Create backend service
-        self.td.setup_backend_for_grpc(
-            health_check_port=self.server_maintenance_port)
+        self.td.setup_backend_for_grpc()
 
         # Start server and attach its NEGs to the backend service, but
         # until they become healthy.
@@ -146,8 +145,7 @@ class SecurityTest(xds_k8s_testcase.SecurityXdsKubernetesTestCase):
         The order of operations is the same as in `test_mtls_error`.
         """
         # Create backend service
-        self.td.setup_backend_for_grpc(
-            health_check_port=self.server_maintenance_port)
+        self.td.setup_backend_for_grpc()
 
         # Start server and attach its NEGs to the backend service, but
         # until they become healthy.

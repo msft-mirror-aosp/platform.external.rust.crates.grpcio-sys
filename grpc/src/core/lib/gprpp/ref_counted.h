@@ -215,45 +215,31 @@ class NonPolymorphicRefCount {
   ~NonPolymorphicRefCount() = default;
 };
 
-// Behavior of RefCounted<> upon ref count reaching 0.
-enum UnrefBehavior {
-  // Default behavior: Delete the object.
-  kUnrefDelete,
-  // Do not delete the object upon unref.  This is useful in cases where all
-  // existing objects must be tracked in a registry but the object's entry in
-  // the registry cannot be removed from the object's dtor due to
-  // synchronization issues.  In this case, the registry can be cleaned up
-  // later by identifying entries for which RefIfNonZero() returns null.
-  kUnrefNoDelete,
-  // Call the object's dtor but do not delete it.  This is useful for cases
-  // where the object is stored in memory allocated elsewhere (e.g., the call
-  // arena).
-  kUnrefCallDtor,
-};
-
 namespace internal {
-template <typename T, UnrefBehavior UnrefBehaviorArg>
+template <typename T, bool DoDelete>
 class Delete;
 template <typename T>
-class Delete<T, kUnrefDelete> {
+class Delete<T, true> {
  public:
   explicit Delete(T* t) { delete t; }
 };
 template <typename T>
-class Delete<T, kUnrefNoDelete> {
+class Delete<T, false> {
  public:
-  explicit Delete(T* /*t*/) {}
-};
-template <typename T>
-class Delete<T, kUnrefCallDtor> {
- public:
-  explicit Delete(T* t) { t->~T(); }
+  explicit Delete(T* t) {}
 };
 }  // namespace internal
 
 // A base class for reference-counted objects.
 // New objects should be created via new and start with a refcount of 1.
-// When the refcount reaches 0, executes the specified UnrefBehavior.
+// When the refcount reaches 0, the object will be deleted via delete.
+//
+// If DeleteUponUnref is false, deletion will not occur when the ref
+// count reaches 0.  This is useful in cases where all existing objects
+// must be tracked in a registry but the object's entry in the registry
+// cannot be removed from the object's dtor due to synchronization issues.
+// In this case, the registry can be cleaned up later by identifying
+// entries for which RefIfNonZero() returns null.
 //
 // This will commonly be used by CRTP (curiously-recurring template pattern)
 // e.g., class MyClass : public RefCounted<MyClass>
@@ -278,7 +264,7 @@ class Delete<T, kUnrefCallDtor> {
 //    ch->Unref();
 //
 template <typename Child, typename Impl = PolymorphicRefCount,
-          UnrefBehavior UnrefBehaviorArg = kUnrefDelete>
+          bool DeleteUponUnref = true>
 class RefCounted : public Impl {
  public:
   // Note: Depending on the Impl used, this dtor can be implicitly virtual.
@@ -301,12 +287,12 @@ class RefCounted : public Impl {
   // friend of this class.
   void Unref() {
     if (GPR_UNLIKELY(refs_.Unref())) {
-      internal::Delete<Child, UnrefBehaviorArg>(static_cast<Child*>(this));
+      internal::Delete<Child, DeleteUponUnref>(static_cast<Child*>(this));
     }
   }
   void Unref(const DebugLocation& location, const char* reason) {
     if (GPR_UNLIKELY(refs_.Unref(location, reason))) {
-      internal::Delete<Child, UnrefBehaviorArg>(static_cast<Child*>(this));
+      internal::Delete<Child, DeleteUponUnref>(static_cast<Child*>(this));
     }
   }
 
