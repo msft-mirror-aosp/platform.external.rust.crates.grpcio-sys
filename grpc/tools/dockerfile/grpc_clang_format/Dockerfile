@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:bullseye
+FROM debian:10
+
+# Add buster-backports for more recent clang packages
+RUN echo "deb http://deb.debian.org/debian buster-backports main" | tee /etc/apt/sources.list.d/buster-backports.list
 
 # Install clang-format
-RUN apt-get update && apt-get install -y clang-format-11
-ENV CLANG_FORMAT=clang-format-11
+RUN apt-get update && apt-get install -y clang-format-8
+ENV CLANG_FORMAT=clang-format-8
 
 ADD clang_format_all_the_things.sh /
 

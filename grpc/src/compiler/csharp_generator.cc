@@ -25,13 +25,23 @@
 #include "src/compiler/csharp_generator.h"
 #include "src/compiler/csharp_generator_helpers.h"
 
+using google::protobuf::compiler::csharp::GetClassName;
+using google::protobuf::compiler::csharp::GetFileNamespace;
+using google::protobuf::compiler::csharp::GetReflectionClassName;
 using grpc::protobuf::Descriptor;
 using grpc::protobuf::FileDescriptor;
 using grpc::protobuf::MethodDescriptor;
 using grpc::protobuf::ServiceDescriptor;
 using grpc::protobuf::io::Printer;
 using grpc::protobuf::io::StringOutputStream;
+using grpc_generator::GetMethodType;
+using grpc_generator::MethodType;
+using grpc_generator::METHODTYPE_BIDI_STREAMING;
+using grpc_generator::METHODTYPE_CLIENT_STREAMING;
+using grpc_generator::METHODTYPE_NO_STREAMING;
+using grpc_generator::METHODTYPE_SERVER_STREAMING;
 using grpc_generator::StringReplace;
+using std::map;
 using std::vector;
 
 namespace grpc_csharp_generator {
@@ -174,36 +184,34 @@ std::string GetServerClassName(const ServiceDescriptor* service) {
   return service->name() + "Base";
 }
 
-std::string GetCSharpMethodType(const MethodDescriptor* method) {
-  if (method->client_streaming()) {
-    if (method->server_streaming()) {
-      return "grpc::MethodType.DuplexStreaming";
-    } else {
-      return "grpc::MethodType.ClientStreaming";
-    }
-  } else {
-    if (method->server_streaming()) {
-      return "grpc::MethodType.ServerStreaming";
-    } else {
+std::string GetCSharpMethodType(MethodType method_type) {
+  switch (method_type) {
+    case METHODTYPE_NO_STREAMING:
       return "grpc::MethodType.Unary";
-    }
+    case METHODTYPE_CLIENT_STREAMING:
+      return "grpc::MethodType.ClientStreaming";
+    case METHODTYPE_SERVER_STREAMING:
+      return "grpc::MethodType.ServerStreaming";
+    case METHODTYPE_BIDI_STREAMING:
+      return "grpc::MethodType.DuplexStreaming";
   }
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return "";
 }
 
-std::string GetCSharpServerMethodType(const MethodDescriptor* method) {
-  if (method->client_streaming()) {
-    if (method->server_streaming()) {
-      return "grpc::DuplexStreamingServerMethod";
-    } else {
-      return "grpc::ClientStreamingServerMethod";
-    }
-  } else {
-    if (method->server_streaming()) {
-      return "grpc::ServerStreamingServerMethod";
-    } else {
+std::string GetCSharpServerMethodType(MethodType method_type) {
+  switch (method_type) {
+    case METHODTYPE_NO_STREAMING:
       return "grpc::UnaryServerMethod";
-    }
+    case METHODTYPE_CLIENT_STREAMING:
+      return "grpc::ClientStreamingServerMethod";
+    case METHODTYPE_SERVER_STREAMING:
+      return "grpc::ServerStreamingServerMethod";
+    case METHODTYPE_BIDI_STREAMING:
+      return "grpc::DuplexStreamingServerMethod";
   }
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return "";
 }
 
 std::string GetServiceNameFieldName() { return "__ServiceName"; }
@@ -225,7 +233,7 @@ std::string GetMethodRequestParamMaybe(const MethodDescriptor* method,
   if (invocation_param) {
     return "request, ";
   }
-  return GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()) + " request, ";
+  return GetClassName(method->input_type()) + " request, ";
 }
 
 std::string GetAccessLevel(bool internal_access) {
@@ -233,50 +241,65 @@ std::string GetAccessLevel(bool internal_access) {
 }
 
 std::string GetMethodReturnTypeClient(const MethodDescriptor* method) {
-  if (method->client_streaming()) {
-    if (method->server_streaming()) {
-      return "grpc::AsyncDuplexStreamingCall<" +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()) + ", " +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) + ">";
-    } else {
+  switch (GetMethodType(method)) {
+    case METHODTYPE_NO_STREAMING:
+      return "grpc::AsyncUnaryCall<" + GetClassName(method->output_type()) +
+             ">";
+    case METHODTYPE_CLIENT_STREAMING:
       return "grpc::AsyncClientStreamingCall<" +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()) + ", " +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) + ">";
-    }
-  } else {
-    if (method->server_streaming()) {
+             GetClassName(method->input_type()) + ", " +
+             GetClassName(method->output_type()) + ">";
+    case METHODTYPE_SERVER_STREAMING:
       return "grpc::AsyncServerStreamingCall<" +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) + ">";
-    } else {
-      return "grpc::AsyncUnaryCall<" +
-             GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) + ">";
-    }
+             GetClassName(method->output_type()) + ">";
+    case METHODTYPE_BIDI_STREAMING:
+      return "grpc::AsyncDuplexStreamingCall<" +
+             GetClassName(method->input_type()) + ", " +
+             GetClassName(method->output_type()) + ">";
   }
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return "";
 }
 
 std::string GetMethodRequestParamServer(const MethodDescriptor* method) {
-  if (method->client_streaming()) {
-    return "grpc::IAsyncStreamReader<" +
-           GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()) +
-           "> requestStream";
+  switch (GetMethodType(method)) {
+    case METHODTYPE_NO_STREAMING:
+    case METHODTYPE_SERVER_STREAMING:
+      return GetClassName(method->input_type()) + " request";
+    case METHODTYPE_CLIENT_STREAMING:
+    case METHODTYPE_BIDI_STREAMING:
+      return "grpc::IAsyncStreamReader<" + GetClassName(method->input_type()) +
+             "> requestStream";
   }
-  return GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()) + " request";
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return "";
 }
 
 std::string GetMethodReturnTypeServer(const MethodDescriptor* method) {
-  if (method->server_streaming()) {
-    return "global::System.Threading.Tasks.Task";
+  switch (GetMethodType(method)) {
+    case METHODTYPE_NO_STREAMING:
+    case METHODTYPE_CLIENT_STREAMING:
+      return "global::System.Threading.Tasks.Task<" +
+             GetClassName(method->output_type()) + ">";
+    case METHODTYPE_SERVER_STREAMING:
+    case METHODTYPE_BIDI_STREAMING:
+      return "global::System.Threading.Tasks.Task";
   }
-  return "global::System.Threading.Tasks.Task<" +
-         GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) + ">";
+  GOOGLE_LOG(FATAL) << "Can't get here.";
+  return "";
 }
 
 std::string GetMethodResponseStreamMaybe(const MethodDescriptor* method) {
-  if (method->server_streaming()) {
-    return ", grpc::IServerStreamWriter<" +
-           GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()) +
-           "> responseStream";
+  switch (GetMethodType(method)) {
+    case METHODTYPE_NO_STREAMING:
+    case METHODTYPE_CLIENT_STREAMING:
+      return "";
+    case METHODTYPE_SERVER_STREAMING:
+    case METHODTYPE_BIDI_STREAMING:
+      return ", grpc::IServerStreamWriter<" +
+             GetClassName(method->output_type()) + "> responseStream";
   }
+  GOOGLE_LOG(FATAL) << "Can't get here.";
   return "";
 }
 
@@ -373,7 +396,7 @@ void GenerateMarshallerFields(Printer* out, const ServiceDescriptor* service) {
         "grpc::Marshallers.Create(__Helper_SerializeMessage, "
         "context => __Helper_DeserializeMessage(context, $type$.Parser));\n",
         "fieldname", GetMarshallerFieldName(message), "type",
-        GRPC_CUSTOM_CSHARP_GETCLASSNAME(message));
+        GetClassName(message));
   }
   out->Print("\n");
 }
@@ -383,11 +406,12 @@ void GenerateStaticMethodField(Printer* out, const MethodDescriptor* method) {
       "static readonly grpc::Method<$request$, $response$> $fieldname$ = new "
       "grpc::Method<$request$, $response$>(\n",
       "fieldname", GetMethodFieldName(method), "request",
-      GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()), "response",
-      GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()));
+      GetClassName(method->input_type()), "response",
+      GetClassName(method->output_type()));
   out->Indent();
   out->Indent();
-  out->Print("$methodtype$,\n", "methodtype", GetCSharpMethodType(method));
+  out->Print("$methodtype$,\n", "methodtype",
+             GetCSharpMethodType(GetMethodType(method)));
   out->Print("$servicenamefield$,\n", "servicenamefield",
              GetServiceNameFieldName());
   out->Print("\"$methodname$\",\n", "methodname", method->name());
@@ -410,9 +434,8 @@ void GenerateServiceDescriptorProperty(Printer* out,
       "Descriptor\n");
   out->Print("{\n");
   out->Print("  get { return $umbrella$.Descriptor.Services[$index$]; }\n",
-             "umbrella",
-             GRPC_CUSTOM_CSHARP_GETREFLECTIONCLASSNAME(service->file()),
-             "index", index.str());
+             "umbrella", GetReflectionClassName(service->file()), "index",
+             index.str());
   out->Print("}\n");
   out->Print("\n");
 }
@@ -503,7 +526,9 @@ void GenerateClientStub(Printer* out, const ServiceDescriptor* service) {
 
   for (int i = 0; i < service->method_count(); i++) {
     const MethodDescriptor* method = service->method(i);
-    if (!method->client_streaming() && !method->server_streaming()) {
+    MethodType method_type = GetMethodType(method);
+
+    if (method_type == METHODTYPE_NO_STREAMING) {
       // unary calls have an extra synchronous stub method
       GenerateDocCommentClientMethod(out, method, true, false);
       out->Print(
@@ -514,8 +539,8 @@ void GenerateClientStub(Printer* out, const ServiceDescriptor* service) {
           "cancellationToken = "
           "default(global::System.Threading.CancellationToken))\n",
           "methodname", method->name(), "request",
-          GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()), "response",
-          GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()));
+          GetClassName(method->input_type()), "response",
+          GetClassName(method->output_type()));
       out->Print("{\n");
       out->Indent();
       out->Print(
@@ -532,8 +557,8 @@ void GenerateClientStub(Printer* out, const ServiceDescriptor* service) {
           "public virtual $response$ $methodname$($request$ request, "
           "grpc::CallOptions options)\n",
           "methodname", method->name(), "request",
-          GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()), "response",
-          GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()));
+          GetClassName(method->input_type()), "response",
+          GetClassName(method->output_type()));
       out->Print("{\n");
       out->Indent();
       out->Print(
@@ -545,7 +570,7 @@ void GenerateClientStub(Printer* out, const ServiceDescriptor* service) {
     }
 
     std::string method_name = method->name();
-    if (!method->client_streaming() && !method->server_streaming()) {
+    if (method_type == METHODTYPE_NO_STREAMING) {
       method_name += "Async";  // prevent name clash with synchronous method.
     }
     GenerateDocCommentClientMethod(out, method, false, false);
@@ -582,30 +607,33 @@ void GenerateClientStub(Printer* out, const ServiceDescriptor* service) {
         GetMethodReturnTypeClient(method));
     out->Print("{\n");
     out->Indent();
-    if (!method->client_streaming() && !method->server_streaming()) {
-      // Non-Streaming
-      out->Print(
-          "return CallInvoker.AsyncUnaryCall($methodfield$, null, options, "
-          "request);\n",
-          "methodfield", GetMethodFieldName(method));
-    } else if (method->client_streaming() && !method->server_streaming()) {
-      // Client Streaming Only
-      out->Print(
-          "return CallInvoker.AsyncClientStreamingCall($methodfield$, null, "
-          "options);\n",
-          "methodfield", GetMethodFieldName(method));
-    } else if (!method->client_streaming() && method->server_streaming()) {
-      // Server Streaming Only
-      out->Print(
-          "return CallInvoker.AsyncServerStreamingCall($methodfield$, null, "
-          "options, request);\n",
-          "methodfield", GetMethodFieldName(method));
-    } else {
-      // Bi-Directional Streaming
-      out->Print(
-          "return CallInvoker.AsyncDuplexStreamingCall($methodfield$, null, "
-          "options);\n",
-          "methodfield", GetMethodFieldName(method));
+    switch (GetMethodType(method)) {
+      case METHODTYPE_NO_STREAMING:
+        out->Print(
+            "return CallInvoker.AsyncUnaryCall($methodfield$, null, options, "
+            "request);\n",
+            "methodfield", GetMethodFieldName(method));
+        break;
+      case METHODTYPE_CLIENT_STREAMING:
+        out->Print(
+            "return CallInvoker.AsyncClientStreamingCall($methodfield$, null, "
+            "options);\n",
+            "methodfield", GetMethodFieldName(method));
+        break;
+      case METHODTYPE_SERVER_STREAMING:
+        out->Print(
+            "return CallInvoker.AsyncServerStreamingCall($methodfield$, null, "
+            "options, request);\n",
+            "methodfield", GetMethodFieldName(method));
+        break;
+      case METHODTYPE_BIDI_STREAMING:
+        out->Print(
+            "return CallInvoker.AsyncDuplexStreamingCall($methodfield$, null, "
+            "options);\n",
+            "methodfield", GetMethodFieldName(method));
+        break;
+      default:
+        GOOGLE_LOG(FATAL) << "Can't get here.";
     }
     out->Outdent();
     out->Print("}\n");
@@ -694,10 +722,9 @@ void GenerateBindServiceWithBinderMethod(Printer* out,
         "new $servermethodtype$<$inputtype$, $outputtype$>("
         "serviceImpl.$methodname$));\n",
         "methodfield", GetMethodFieldName(method), "servermethodtype",
-        GetCSharpServerMethodType(method), "inputtype",
-        GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->input_type()), "outputtype",
-        GRPC_CUSTOM_CSHARP_GETCLASSNAME(method->output_type()), "methodname",
-        method->name());
+        GetCSharpServerMethodType(GetMethodType(method)), "inputtype",
+        GetClassName(method->input_type()), "outputtype",
+        GetClassName(method->output_type()), "methodname", method->name());
   }
 
   out->Outdent();
@@ -778,7 +805,7 @@ std::string GetServices(const FileDescriptor* file, bool generate_client,
     out.Print("using grpc = global::Grpc.Core;\n");
     out.Print("\n");
 
-    std::string file_namespace = GRPC_CUSTOM_CSHARP_GETFILENAMESPACE(file);
+    std::string file_namespace = GetFileNamespace(file);
     if (file_namespace != "") {
       out.Print("namespace $namespace$ {\n", "namespace", file_namespace);
       out.Indent();
