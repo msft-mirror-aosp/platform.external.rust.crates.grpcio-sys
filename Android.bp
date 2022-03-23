@@ -114,7 +114,8 @@ rust_bindgen {
         "--blocklist-type=gpr_mu",
         "--blocklist-type=gpr_cv",
         "--blocklist-type=gpr_once",
-    ]
+    ],
+    min_sdk_version: "29",
 }
 
 rust_test {
