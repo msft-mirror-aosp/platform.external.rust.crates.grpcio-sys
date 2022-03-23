@@ -25,14 +25,7 @@ git clone /var/local/jenkins/grpc /var/local/git/grpc
 ${name}')
 cd /var/local/git/grpc
 
-# Build all basic targets using the strict warning option which leverages the
-# clang compiler to check if sources can pass a set of warning options.
-bazel build --define=use_strict_warning=true \
-	:all \
-	//src/core/... \
-	//src/compiler/... \
-	//test/... \
-	//examples/...
+bazel build :all //test/... //examples/...
 
 # TODO(jtattersmusch): Adding a build here for --define=grpc_no_xds is not ideal
 # and we should find a better place for this. Refer

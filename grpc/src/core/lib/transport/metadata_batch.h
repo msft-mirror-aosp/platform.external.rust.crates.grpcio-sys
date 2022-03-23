@@ -23,12 +23,9 @@
 
 #include <stdbool.h>
 
-#include "absl/types/optional.h"
-
 #include <grpc/grpc.h>
 #include <grpc/slice.h>
 #include <grpc/support/time.h>
-
 #include "src/core/lib/iomgr/exec_ctx.h"
 #include "src/core/lib/transport/metadata.h"
 #include "src/core/lib/transport/static_metadata.h"
@@ -74,33 +71,22 @@ void grpc_metadata_batch_remove(grpc_metadata_batch* batch,
                                 grpc_metadata_batch_callouts_index idx);
 
 /** Substitute a new mdelem for an old value */
-grpc_error_handle grpc_metadata_batch_substitute(grpc_metadata_batch* batch,
-                                                 grpc_linked_mdelem* storage,
-                                                 grpc_mdelem new_mdelem);
+grpc_error* grpc_metadata_batch_substitute(grpc_metadata_batch* batch,
+                                           grpc_linked_mdelem* storage,
+                                           grpc_mdelem new_mdelem);
 
 void grpc_metadata_batch_set_value(grpc_linked_mdelem* storage,
                                    const grpc_slice& value);
-
-/** Returns metadata value(s) for the specified key.
-    If the key is not present in the batch, returns absl::nullopt.
-    If the key is present exactly once in the batch, returns a string_view of
-    that value.
-    If the key is present more than once in the batch, constructs a
-    comma-concatenated string of all values in concatenated_value and returns a
-    string_view of that string. */
-absl::optional<absl::string_view> grpc_metadata_batch_get_value(
-    grpc_metadata_batch* batch, absl::string_view target_key,
-    std::string* concatenated_value);
 
 /** Add \a storage to the beginning of \a batch. storage->md is
     assumed to be valid.
     \a storage is owned by the caller and must survive for the
     lifetime of batch. This usually means it should be around
     for the lifetime of the call. */
-grpc_error_handle grpc_metadata_batch_link_head(grpc_metadata_batch* batch,
-                                                grpc_linked_mdelem* storage)
+grpc_error* grpc_metadata_batch_link_head(grpc_metadata_batch* batch,
+                                          grpc_linked_mdelem* storage)
     GRPC_MUST_USE_RESULT;
-grpc_error_handle grpc_metadata_batch_link_head(
+grpc_error* grpc_metadata_batch_link_head(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_metadata_batch_callouts_index idx) GRPC_MUST_USE_RESULT;
 
@@ -109,10 +95,10 @@ grpc_error_handle grpc_metadata_batch_link_head(
     \a storage is owned by the caller and must survive for the
     lifetime of batch. This usually means it should be around
     for the lifetime of the call. */
-grpc_error_handle grpc_metadata_batch_link_tail(grpc_metadata_batch* batch,
-                                                grpc_linked_mdelem* storage)
+grpc_error* grpc_metadata_batch_link_tail(grpc_metadata_batch* batch,
+                                          grpc_linked_mdelem* storage)
     GRPC_MUST_USE_RESULT;
-grpc_error_handle grpc_metadata_batch_link_tail(
+grpc_error* grpc_metadata_batch_link_tail(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_metadata_batch_callouts_index idx) GRPC_MUST_USE_RESULT;
 
@@ -122,19 +108,19 @@ grpc_error_handle grpc_metadata_batch_link_tail(
     lifetime of batch. This usually means it should be around
     for the lifetime of the call.
     Takes ownership of \a elem_to_add */
-grpc_error_handle grpc_metadata_batch_add_head(
+grpc_error* grpc_metadata_batch_add_head(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_mdelem elem_to_add) GRPC_MUST_USE_RESULT;
 
 // TODO(arjunroy, roth): Remove redundant methods.
 // add/link_head/tail are almost identical.
-inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_head(
+inline grpc_error* GRPC_MUST_USE_RESULT grpc_metadata_batch_add_head(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_metadata_batch_callouts_index idx) {
   return grpc_metadata_batch_link_head(batch, storage, idx);
 }
 
-inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_head(
+inline grpc_error* GRPC_MUST_USE_RESULT grpc_metadata_batch_add_head(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_mdelem elem_to_add, grpc_metadata_batch_callouts_index idx) {
   GPR_DEBUG_ASSERT(!GRPC_MDISNULL(elem_to_add));
@@ -148,17 +134,17 @@ inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_head(
     lifetime of batch. This usually means it should be around
     for the lifetime of the call.
     Takes ownership of \a elem_to_add */
-grpc_error_handle grpc_metadata_batch_add_tail(
+grpc_error* grpc_metadata_batch_add_tail(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_mdelem elem_to_add) GRPC_MUST_USE_RESULT;
 
-inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_tail(
+inline grpc_error* GRPC_MUST_USE_RESULT grpc_metadata_batch_add_tail(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_metadata_batch_callouts_index idx) {
   return grpc_metadata_batch_link_tail(batch, storage, idx);
 }
 
-inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_tail(
+inline grpc_error* GRPC_MUST_USE_RESULT grpc_metadata_batch_add_tail(
     grpc_metadata_batch* batch, grpc_linked_mdelem* storage,
     grpc_mdelem elem_to_add, grpc_metadata_batch_callouts_index idx) {
   GPR_DEBUG_ASSERT(!GRPC_MDISNULL(elem_to_add));
@@ -166,11 +152,10 @@ inline grpc_error_handle GRPC_MUST_USE_RESULT grpc_metadata_batch_add_tail(
   return grpc_metadata_batch_add_tail(batch, storage, idx);
 }
 
-grpc_error_handle grpc_attach_md_to_error(grpc_error_handle src,
-                                          grpc_mdelem md);
+grpc_error* grpc_attach_md_to_error(grpc_error* src, grpc_mdelem md);
 
 struct grpc_filtered_mdelem {
-  grpc_error_handle error;
+  grpc_error* error;
   grpc_mdelem md;
 };
 #define GRPC_FILTERED_ERROR(error) \
@@ -182,7 +167,7 @@ struct grpc_filtered_mdelem {
 
 typedef grpc_filtered_mdelem (*grpc_metadata_batch_filter_func)(
     void* user_data, grpc_mdelem elem);
-grpc_error_handle grpc_metadata_batch_filter(
+grpc_error* grpc_metadata_batch_filter(
     grpc_metadata_batch* batch, grpc_metadata_batch_filter_func func,
     void* user_data, const char* composite_error_string) GRPC_MUST_USE_RESULT;
 
