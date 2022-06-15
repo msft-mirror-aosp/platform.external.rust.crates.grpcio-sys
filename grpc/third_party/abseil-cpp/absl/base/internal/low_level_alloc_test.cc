@@ -21,10 +21,6 @@
 #include <unordered_map>
 #include <utility>
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include "absl/container/node_hash_map.h"
 
 namespace absl {
@@ -162,20 +158,5 @@ ABSL_NAMESPACE_END
 int main(int argc, char *argv[]) {
   // The actual test runs in the global constructor of `before_main`.
   printf("PASS\n");
-#ifdef __EMSCRIPTEN__
-  // clang-format off
-// This is JS here. Don't try to format it.
-    MAIN_THREAD_EM_ASM({
-      if (ENVIRONMENT_IS_WEB) {
-        if (typeof TEST_FINISH === 'function') {
-          TEST_FINISH($0);
-        } else {
-          console.error('Attempted to exit with status ' + $0);
-          console.error('But TEST_FINSIHED is not a function.');
-        }
-      }
-    }, 0);
-// clang-format on
-#endif
   return 0;
 }
