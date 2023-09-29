@@ -63,6 +63,8 @@ rust_library {
         "//apex_available:platform",
         "com.android.btservices",
     ],
+    product_available: false,
+    vendor_available: true,
     min_sdk_version: "29",
 }
 
@@ -74,9 +76,12 @@ cc_defaults {
     cpp_std: "c++11",
     shared_libs: ["libgrpc++"],
     apex_available: [
+        "//apex_available:anyapex",
         "//apex_available:platform",
         "com.android.btservices",
     ],
+    product_available: false,
+    vendor_available: true,
     min_sdk_version: "29",
 }
 
