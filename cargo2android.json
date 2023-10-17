@@ -9,5 +9,7 @@
   "min-sdk-version": "29",
   "no-pkg-vers": true,
   "patch": "patches/Android.bp.patch",
-  "run": true
+  "run": true,
+  "vendor-available": true,
+  "product-available": false
 }
