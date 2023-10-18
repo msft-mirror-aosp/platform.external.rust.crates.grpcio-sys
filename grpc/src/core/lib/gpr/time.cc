@@ -20,11 +20,12 @@
 
 #include <grpc/support/port_platform.h>
 
-#include <grpc/support/log.h>
-#include <grpc/support/time.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <grpc/support/log.h>
+#include <grpc/support/time.h>
 
 int gpr_time_cmp(gpr_timespec a, gpr_timespec b) {
   int cmp = (a.tv_sec > b.tv_sec) - (a.tv_sec < b.tv_sec);
@@ -183,7 +184,8 @@ gpr_timespec gpr_time_sub(gpr_timespec a, gpr_timespec b) {
     dec++;
   }
   if (a.tv_sec == INT64_MAX || a.tv_sec == INT64_MIN) {
-    diff = a;
+    diff.tv_sec = a.tv_sec;
+    diff.tv_nsec = a.tv_nsec;
   } else if (b.tv_sec == INT64_MIN ||
              (b.tv_sec <= 0 && a.tv_sec >= INT64_MAX + b.tv_sec)) {
     diff = gpr_inf_future(GPR_CLOCK_REALTIME);
