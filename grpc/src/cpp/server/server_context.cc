@@ -16,9 +16,8 @@
  *
  */
 
-#include <grpcpp/impl/codegen/server_context.h>
-
 #include <algorithm>
+#include <atomic>
 #include <utility>
 
 #include <grpc/compression.h>
@@ -28,6 +27,7 @@
 #include <grpc/support/log.h>
 #include <grpcpp/impl/call.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/grpc_library.h>
 #include <grpcpp/support/server_callback.h>
 #include <grpcpp/support/time.h>
@@ -48,7 +48,7 @@ class ServerContextBase::CompletionOp final
   // initial refs: one in the server context, one in the cq
   // must ref the call before calling constructor and after deleting this
   CompletionOp(internal::Call* call,
-               ::grpc::internal::ServerCallbackCall* callback_controller)
+               grpc::internal::ServerCallbackCall* callback_controller)
       : call_(*call),
         callback_controller_(callback_controller),
         has_tag_(false),
@@ -141,7 +141,7 @@ class ServerContextBase::CompletionOp final
   }
 
   internal::Call call_;
-  ::grpc::internal::ServerCallbackCall* const callback_controller_;
+  grpc::internal::ServerCallbackCall* const callback_controller_;
   bool has_tag_;
   void* tag_;
   void* core_cq_tag_;
@@ -275,7 +275,7 @@ ServerContextBase::CallWrapper::~CallWrapper() {
 
 void ServerContextBase::BeginCompletionOp(
     internal::Call* call, std::function<void(bool)> callback,
-    ::grpc::internal::ServerCallbackCall* callback_controller) {
+    grpc::internal::ServerCallbackCall* callback_controller) {
   GPR_ASSERT(!completion_op_);
   if (rpc_info_) {
     rpc_info_->Ref();
@@ -327,14 +327,16 @@ void ServerContextBase::TryCancel() const {
 bool ServerContextBase::IsCancelled() const {
   if (completion_tag_) {
     // When using callback API, this result is always valid.
-    return completion_op_->CheckCancelledAsync();
+    return marked_cancelled_.load(std::memory_order_acquire) ||
+           completion_op_->CheckCancelledAsync();
   } else if (has_notify_when_done_tag_) {
     // When using async API, the result is only valid
     // if the tag has already been delivered at the completion queue
     return completion_op_ && completion_op_->CheckCancelledAsync();
   } else {
     // when using sync API, the result is always valid
-    return completion_op_ && completion_op_->CheckCancelled(cq_);
+    return marked_cancelled_.load(std::memory_order_acquire) ||
+           (completion_op_ && completion_op_->CheckCancelled(cq_));
   }
 }
 
