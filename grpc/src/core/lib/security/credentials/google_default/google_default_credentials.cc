@@ -18,9 +18,12 @@
 
 #include <grpc/support/port_platform.h>
 
-#include "src/core/lib/security/credentials/credentials.h"
+#include "src/core/lib/security/credentials/google_default/google_default_credentials.h"
 
 #include <string.h>
+
+#include "absl/strings/match.h"
+#include "absl/strings/strip.h"
 
 #include <grpc/support/alloc.h>
 #include <grpc/support/log.h>
@@ -31,6 +34,7 @@
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/gpr/env.h"
 #include "src/core/lib/gpr/string.h"
+#include "src/core/lib/gprpp/host_port.h"
 #include "src/core/lib/gprpp/ref_counted_ptr.h"
 #include "src/core/lib/http/httpcli.h"
 #include "src/core/lib/http/parser.h"
@@ -38,8 +42,8 @@
 #include "src/core/lib/iomgr/polling_entity.h"
 #include "src/core/lib/security/credentials/alts/alts_credentials.h"
 #include "src/core/lib/security/credentials/alts/check_gcp_environment.h"
+#include "src/core/lib/security/credentials/credentials.h"
 #include "src/core/lib/security/credentials/external/external_account_credentials.h"
-#include "src/core/lib/security/credentials/google_default/google_default_credentials.h"
 #include "src/core/lib/security/credentials/jwt/jwt_credentials.h"
 #include "src/core/lib/security/credentials/oauth2/oauth2_credentials.h"
 #include "src/core/lib/slice/slice_internal.h"
@@ -91,7 +95,7 @@ grpc_google_default_channel_credentials::create_security_connector(
   const char* xds_cluster =
       grpc_channel_args_find_string(args, GRPC_ARG_XDS_CLUSTER_NAME);
   const bool is_xds_non_cfe_cluster =
-      xds_cluster != nullptr && strcmp(xds_cluster, "google_cfe") != 0;
+      xds_cluster != nullptr && !absl::StartsWith(xds_cluster, "google_cfe_");
   const bool use_alts = is_grpclb_load_balancer ||
                         is_backend_from_grpclb_load_balancer ||
                         is_xds_non_cfe_cluster;
@@ -134,6 +138,10 @@ grpc_channel_args* grpc_google_default_channel_credentials::update_arguments(
   return updated;
 }
 
+const char* grpc_google_default_channel_credentials::type() const {
+  return "GoogleDefault";
+}
+
 static void on_metadata_server_detection_http_response(
     void* user_data, grpc_error_handle error) {
   metadata_server_detector* detector =
@@ -167,31 +175,31 @@ static void destroy_pollset(void* p, grpc_error_handle /*e*/) {
 
 static int is_metadata_server_reachable() {
   metadata_server_detector detector;
-  grpc_httpcli_request request;
-  grpc_httpcli_context context;
+  grpc_http_request request;
   grpc_closure destroy_closure;
   /* The http call is local. If it takes more than one sec, it is for sure not
      on compute engine. */
-  grpc_millis max_detection_delay = GPR_MS_PER_SEC;
+  const auto max_detection_delay = grpc_core::Duration::Seconds(1);
   grpc_pollset* pollset =
       static_cast<grpc_pollset*>(gpr_zalloc(grpc_pollset_size()));
   grpc_pollset_init(pollset, &g_polling_mu);
   detector.pollent = grpc_polling_entity_create_from_pollset(pollset);
   detector.is_done = 0;
   detector.success = 0;
-  memset(&request, 0, sizeof(grpc_httpcli_request));
-  request.host = const_cast<char*>(GRPC_COMPUTE_ENGINE_DETECTION_HOST);
-  request.http.path = const_cast<char*>("/");
-  grpc_httpcli_context_init(&context);
-  grpc_resource_quota* resource_quota =
-      grpc_resource_quota_create("google_default_credentials");
-  grpc_httpcli_get(
-      &context, &detector.pollent, resource_quota, &request,
+  memset(&request, 0, sizeof(grpc_http_request));
+  auto uri =
+      grpc_core::URI::Create("http", GRPC_COMPUTE_ENGINE_DETECTION_HOST, "/",
+                             {} /* query params */, "" /* fragment */);
+  GPR_ASSERT(uri.ok());  // params are hardcoded
+  auto http_request = grpc_core::HttpRequest::Get(
+      std::move(*uri), nullptr /* channel args */, &detector.pollent, &request,
       grpc_core::ExecCtx::Get()->Now() + max_detection_delay,
       GRPC_CLOSURE_CREATE(on_metadata_server_detection_http_response, &detector,
                           grpc_schedule_on_exec_ctx),
-      &detector.response);
-  grpc_resource_quota_unref_internal(resource_quota);
+      &detector.response,
+      grpc_core::RefCountedPtr<grpc_channel_credentials>(
+          grpc_insecure_credentials_create()));
+  http_request->Start();
   grpc_core::ExecCtx::Get()->Flush();
   /* Block until we get the response. This is not ideal but this should only be
     called once for the lifetime of the process by the default credentials. */
@@ -201,13 +209,13 @@ static int is_metadata_server_reachable() {
     if (!GRPC_LOG_IF_ERROR(
             "pollset_work",
             grpc_pollset_work(grpc_polling_entity_pollset(&detector.pollent),
-                              &worker, GRPC_MILLIS_INF_FUTURE))) {
+                              &worker, grpc_core::Timestamp::InfFuture()))) {
       detector.is_done = 1;
       detector.success = 0;
     }
   }
   gpr_mu_unlock(g_polling_mu);
-  grpc_httpcli_context_destroy(&context);
+  http_request.reset();
   GRPC_CLOSURE_INIT(&destroy_closure, destroy_pollset,
                     grpc_polling_entity_pollset(&detector.pollent),
                     grpc_schedule_on_exec_ctx);
@@ -219,6 +227,52 @@ static int is_metadata_server_reachable() {
   grpc_http_response_destroy(&detector.response);
   return detector.success;
 }
+
+namespace {
+
+bool ValidateUrlField(const Json& json, const std::string& field) {
+  auto it = json.object_value().find(field);
+  if (it == json.object_value().end()) {
+    return true;
+  }
+  if (it->second.type() != Json::Type::STRING ||
+      it->second.string_value().empty()) {
+    return false;
+  }
+  absl::StatusOr<grpc_core::URI> url =
+      grpc_core::URI::Parse(it->second.string_value());
+  if (!url.ok()) return false;
+  if (!absl::EqualsIgnoreCase(url->scheme(), "https")) {
+    return false;
+  }
+  absl::string_view host;
+  absl::string_view port;
+  grpc_core::SplitHostPort(url->authority(), &host, &port);
+  if (absl::ConsumeSuffix(&host, ".googleapis.com")) {
+    if (host == "sts" || host == "iamcredentials") {
+      return true;
+    } else if (absl::StartsWith(host, "sts.") ||
+               absl::StartsWith(host, "iamcredentials.")) {
+      return true;
+    } else if (absl::EndsWith(host, ".sts") ||
+               absl::EndsWith(host, ".iamcredentials")) {
+      return true;
+    } else if (absl::EndsWith(host, "-sts") ||
+               absl::EndsWith(host, "-iamcredentials")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ValidateExteralAccountCredentials(const Json& json) {
+  return json.type() == Json::Type::OBJECT &&
+         ValidateUrlField(json, "token_url") &&
+         ValidateUrlField(json, "service_account_impersonation_url") &&
+         ValidateUrlField(json, "token_info_url");
+}
+
+}  // namespace
 
 /* Takes ownership of creds_path if not NULL. */
 static grpc_error_handle create_default_creds_from_path(
@@ -241,7 +295,7 @@ static grpc_error_handle create_default_creds_from_path(
   if (json.type() != Json::Type::OBJECT) {
     error = grpc_error_set_str(
         GRPC_ERROR_CREATE_FROM_STATIC_STRING("Failed to parse JSON"),
-        GRPC_ERROR_STR_RAW_BYTES, grpc_slice_ref_internal(creds_data));
+        GRPC_ERROR_STR_RAW_BYTES, grpc_core::StringViewFromSlice(creds_data));
     goto end;
   }
 
@@ -273,6 +327,11 @@ static grpc_error_handle create_default_creds_from_path(
   }
 
   /* Finally try an external account credentials.*/
+  if (!ValidateExteralAccountCredentials(json)) {
+    error = GRPC_ERROR_CREATE_FROM_STATIC_STRING(
+        "Invalid external account credentials format.");
+    goto end;
+  }
   result = grpc_core::ExternalAccountCredentials::Create(json, {}, &error);
 
 end:
@@ -387,9 +446,9 @@ void set_gce_tenancy_checker_for_testing(grpc_gce_tenancy_checker checker) {
 }
 
 void grpc_flush_cached_google_default_credentials(void) {
-  grpc_core::ExecCtx exec_ctx;
+  ExecCtx exec_ctx;
   gpr_once_init(&g_once, init_default_credentials);
-  grpc_core::MutexLock lock(g_state_mu);
+  MutexLock lock(g_state_mu);
   g_metadata_server_available = 0;
 }
 
