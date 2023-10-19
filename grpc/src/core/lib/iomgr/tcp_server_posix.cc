@@ -29,6 +29,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <string.h>
@@ -59,12 +60,14 @@
 #include "src/core/lib/iomgr/tcp_server.h"
 #include "src/core/lib/iomgr/tcp_server_utils_posix.h"
 #include "src/core/lib/iomgr/unix_sockets_posix.h"
+#include "src/core/lib/resource_quota/api.h"
+
+static std::atomic<int64_t> num_dropped_connections{0};
 
 static grpc_error_handle tcp_server_create(grpc_closure* shutdown_complete,
                                            const grpc_channel_args* args,
                                            grpc_tcp_server** server) {
-  grpc_tcp_server* s =
-      static_cast<grpc_tcp_server*>(gpr_zalloc(sizeof(grpc_tcp_server)));
+  grpc_tcp_server* s = new grpc_tcp_server;
   s->so_reuseport = grpc_is_socket_reuse_port_supported();
   s->expand_wildcard_addrs = false;
   for (size_t i = 0; i < (args == nullptr ? 0 : args->num_args); i++) {
@@ -102,6 +105,8 @@ static grpc_error_handle tcp_server_create(grpc_closure* shutdown_complete,
   s->nports = 0;
   s->channel_args = grpc_channel_args_copy(args);
   s->fd_handler = nullptr;
+  s->memory_quota =
+      grpc_core::ResourceQuotaFromChannelArgs(args)->memory_quota();
   gpr_atm_no_barrier_store(&s->next_pollset_to_assign, 0);
   *server = s;
   return GRPC_ERROR_NONE;
@@ -115,9 +120,7 @@ static void finish_shutdown(grpc_tcp_server* s) {
     grpc_core::ExecCtx::Run(DEBUG_LOCATION, s->shutdown_complete,
                             GRPC_ERROR_NONE);
   }
-
   gpr_mu_destroy(&s->mu);
-
   while (s->head) {
     grpc_tcp_listener* sp = s->head;
     s->head = sp->next;
@@ -125,8 +128,7 @@ static void finish_shutdown(grpc_tcp_server* s) {
   }
   grpc_channel_args_destroy(s->channel_args);
   delete s->fd_handler;
-
-  gpr_free(s);
+  delete s;
 }
 
 static void destroyed_port(void* server, grpc_error_handle /*error*/) {
@@ -169,10 +171,8 @@ static void deactivated_all_ports(grpc_tcp_server* s) {
 
 static void tcp_server_destroy(grpc_tcp_server* s) {
   gpr_mu_lock(&s->mu);
-
   GPR_ASSERT(!s->shutdown);
   s->shutdown = true;
-
   /* shutdown all fd's */
   if (s->active_ports) {
     grpc_tcp_listener* sp;
@@ -204,23 +204,35 @@ static void on_read(void* arg, grpc_error_handle err) {
        strip off the ::ffff:0.0.0.0/96 prefix first. */
     int fd = grpc_accept4(sp->fd, &addr, 1, 1);
     if (fd < 0) {
-      switch (errno) {
-        case EINTR:
-          continue;
-        case EAGAIN:
-          grpc_fd_notify_on_read(sp->emfd, &sp->read_closure);
-          return;
-        default:
-          gpr_mu_lock(&sp->server->mu);
-          if (!sp->server->shutdown_listeners) {
-            gpr_log(GPR_ERROR, "Failed accept4: %s", strerror(errno));
-          } else {
-            /* if we have shutdown listeners, accept4 could fail, and we
-               needn't notify users */
-          }
-          gpr_mu_unlock(&sp->server->mu);
-          goto error;
+      if (errno == EINTR) {
+        continue;
+      } else if (errno == EAGAIN || errno == ECONNABORTED ||
+                 errno == EWOULDBLOCK) {
+        grpc_fd_notify_on_read(sp->emfd, &sp->read_closure);
+        return;
+      } else {
+        gpr_mu_lock(&sp->server->mu);
+        if (!sp->server->shutdown_listeners) {
+          gpr_log(GPR_ERROR, "Failed accept4: %s", strerror(errno));
+        } else {
+          /* if we have shutdown listeners, accept4 could fail, and we
+             needn't notify users */
+        }
+        gpr_mu_unlock(&sp->server->mu);
+        goto error;
       }
+    }
+
+    if (sp->server->memory_quota->IsMemoryPressureHigh()) {
+      int64_t dropped_connections_count = ++num_dropped_connections;
+      if (dropped_connections_count % 1000 == 0) {
+        gpr_log(GPR_INFO,
+                "Dropped >= %" PRId64
+                " new connection attempts due to high memory pressure",
+                dropped_connections_count);
+      }
+      close(fd);
+      continue;
     }
 
     /* For UNIX sockets, the accept call might not fill up the member sun_path
@@ -236,7 +248,13 @@ static void on_read(void* arg, grpc_error_handle err) {
       }
     }
 
-    grpc_set_socket_no_sigpipe_if_possible(fd);
+    (void)grpc_set_socket_no_sigpipe_if_possible(fd);
+
+    err = grpc_apply_socket_mutator_in_args(fd, GRPC_FD_SERVER_CONNECTION_USAGE,
+                                            sp->server->channel_args);
+    if (err != GRPC_ERROR_NONE) {
+      goto error;
+    }
 
     std::string addr_str = grpc_sockaddr_to_uri(&addr);
     if (GRPC_TRACE_FLAG_ENABLED(grpc_tcp_trace)) {
@@ -261,10 +279,9 @@ static void on_read(void* arg, grpc_error_handle err) {
     acceptor->port_index = sp->port_index;
     acceptor->fd_index = sp->fd_index;
     acceptor->external_connection = false;
-
     sp->server->on_accept_cb(
         sp->server->on_accept_cb_arg,
-        grpc_tcp_create(fdobj, sp->server->channel_args, addr_str.c_str()),
+        grpc_tcp_create(fdobj, sp->server->channel_args, addr_str),
         read_notifier_pollset, acceptor);
   }
 
@@ -399,6 +416,7 @@ static grpc_error_handle clone_port(grpc_tcp_listener* listener,
 static grpc_error_handle tcp_server_add_port(grpc_tcp_server* s,
                                              const grpc_resolved_address* addr,
                                              int* out_port) {
+  GPR_ASSERT(addr->len <= GRPC_MAX_SOCKADDR_SIZE);
   grpc_tcp_listener* sp;
   grpc_resolved_address sockname_temp;
   grpc_resolved_address addr6_v4mapped;
@@ -585,7 +603,7 @@ class ExternalConnectionHandler : public grpc_core::TcpServerFdHandler {
       close(fd);
       return;
     }
-    grpc_set_socket_no_sigpipe_if_possible(fd);
+    (void)grpc_set_socket_no_sigpipe_if_possible(fd);
     std::string addr_str = grpc_sockaddr_to_uri(&addr);
     if (grpc_tcp_trace.enabled()) {
       gpr_log(GPR_INFO, "SERVER_CONNECT: incoming external connection: %s",
@@ -607,7 +625,7 @@ class ExternalConnectionHandler : public grpc_core::TcpServerFdHandler {
     acceptor->listener_fd = listener_fd;
     acceptor->pending_data = buf;
     s_->on_accept_cb(s_->on_accept_cb_arg,
-                     grpc_tcp_create(fdobj, s_->channel_args, addr_str.c_str()),
+                     grpc_tcp_create(fdobj, s_->channel_args, addr_str),
                      read_notifier_pollset, acceptor);
   }
 
