@@ -22,6 +22,7 @@
 #include <grpc/support/port_platform.h>
 
 #include <grpc/slice.h>
+
 #include "src/core/lib/iomgr/endpoint.h"
 
 struct tsi_frame_protector;
@@ -36,6 +37,6 @@ grpc_endpoint* grpc_secure_endpoint_create(
     struct tsi_frame_protector* protector,
     struct tsi_zero_copy_grpc_protector* zero_copy_protector,
     grpc_endpoint* to_wrap, grpc_slice* leftover_slices,
-    size_t leftover_nslices);
+    const grpc_channel_args* channel_args, size_t leftover_nslices);
 
 #endif /* GRPC_CORE_LIB_SECURITY_TRANSPORT_SECURE_ENDPOINT_H */

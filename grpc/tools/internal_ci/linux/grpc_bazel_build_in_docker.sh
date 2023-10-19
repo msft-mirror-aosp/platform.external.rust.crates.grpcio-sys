@@ -27,12 +27,23 @@ cd /var/local/git/grpc
 
 # Build all basic targets using the strict warning option which leverages the
 # clang compiler to check if sources can pass a set of warning options.
+# For now //examples/android/binder/ are excluded because it needs Android
+# SDK/NDK to be installed to build
 bazel build --define=use_strict_warning=true \
+	-- \
 	:all \
 	//src/core/... \
 	//src/compiler/... \
 	//test/... \
-	//examples/...
+	//examples/... \
+	-//examples/android/binder/...
+
+# TODO(veblush): Remove this test after migration to abseil-status is done.
+bazel build --define=use_strict_warning=true --define=use_abseil_status=true \
+	-- \
+	//src/core/... \
+	//src/compiler/... \
+	//test/...
 
 # TODO(jtattersmusch): Adding a build here for --define=grpc_no_xds is not ideal
 # and we should find a better place for this. Refer
@@ -42,7 +53,7 @@ bazel build --define=use_strict_warning=true \
 bazel build //test/cpp/end2end:end2end_test --define=grpc_no_xds=true
 # Test that builds that need xDS do not build with --define=grpc_no_xds=true
 EXIT_CODE=0
-bazel build //test/cpp/end2end:xds_end2end_test --define=grpc_no_xds=true || EXIT_CODE=$?
+bazel build //test/cpp/end2end/xds:xds_end2end_test --define=grpc_no_xds=true || EXIT_CODE=$?
 if [ $EXIT_CODE -eq 0 ]
 then
 	echo "Building xds_end2end_test succeeded even with --define=grpc_no_xds=true"
