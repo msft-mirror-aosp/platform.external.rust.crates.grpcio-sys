@@ -45,11 +45,11 @@ rust_library {
     ],
     edition: "2018",
     features: [
+        "_gen-bindings",
+        "_secure",
         "bindgen",
+        "boringssl",
         "boringssl-src",
-        "default",
-        "secure",
-        "use-bindgen",
     ],
     rustlibs: [
         "liblibc",
@@ -73,7 +73,6 @@ cc_defaults {
     cflags: [
         "-DGRPC_SYS_SECURE",
     ],
-    cpp_std: "c++11",
     shared_libs: ["libgrpc++"],
     apex_available: [
         "//apex_available:anyapex",
