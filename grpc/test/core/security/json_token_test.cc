@@ -18,8 +18,9 @@
 
 #include "src/core/lib/security/credentials/jwt/json_token.h"
 
-#include <openssl/evp.h>
 #include <string.h>
+
+#include <openssl/evp.h>
 
 #include <grpc/grpc_security.h>
 #include <grpc/slice.h>
@@ -432,7 +433,7 @@ static void test_parse_refresh_token_failure_no_refresh_token(void) {
 }
 
 int main(int argc, char** argv) {
-  grpc::testing::TestEnvironment env(argc, argv);
+  grpc::testing::TestEnvironment env(&argc, argv);
   grpc_init();
   test_parse_json_key_success();
   test_parse_json_key_failure_bad_json();

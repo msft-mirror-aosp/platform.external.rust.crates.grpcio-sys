@@ -18,6 +18,8 @@
 
 #include <grpc/support/port_platform.h>
 
+#include "src/core/lib/channel/handshaker.h"
+
 #include <string.h>
 
 #include "absl/strings/str_format.h"
@@ -28,7 +30,6 @@
 #include <grpc/support/string_util.h>
 
 #include "src/core/lib/channel/channel_args.h"
-#include "src/core/lib/channel/handshaker.h"
 #include "src/core/lib/debug/trace.h"
 #include "src/core/lib/iomgr/timer.h"
 #include "src/core/lib/slice/slice_internal.h"
@@ -168,7 +169,7 @@ void HandshakeManager::OnTimeoutFn(void* arg, grpc_error_handle error) {
 
 void HandshakeManager::DoHandshake(grpc_endpoint* endpoint,
                                    const grpc_channel_args* channel_args,
-                                   grpc_millis deadline,
+                                   Timestamp deadline,
                                    grpc_tcp_server_acceptor* acceptor,
                                    grpc_iomgr_cb_func on_handshake_done,
                                    void* user_data) {
