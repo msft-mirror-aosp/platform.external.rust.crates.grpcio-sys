@@ -1,5 +1,5 @@
 {
-  "apex_available": [
+  "apex-available": [
     "//apex_available:platform",
     "com.android.btservices"
   ],
