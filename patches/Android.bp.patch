@@ -1,21 +1,13 @@
 diff --git a/Android.bp b/Android.bp
-index 4bcdbd5..bd5d904 100644
+index eb98772..ae4702d 100644
 --- a/Android.bp
 +++ b/Android.bp
-@@ -39,7 +39,7 @@ rust_library {
-     host_supported: true,
+@@ -40,7 +40,7 @@ rust_library {
      crate_name: "grpcio_sys",
      cargo_env_compat: true,
+     cargo_pkg_version: "0.12.1+1.46.5-patched",
 -    srcs: ["src/lib.rs"],
 +    srcs: ["src/lib.rs", ":libgrpc_bindgen"],
      edition: "2018",
      features: [
          "_gen-bindings",
-@@ -48,6 +48,7 @@ rust_library {
-         "boringssl",
-         "boringssl-src",
-     ],
-+    cfgs: ["soong"],
-     rustlibs: [
-         "liblibc",
-         "liblibz_sys",
