@@ -1,5 +1,5 @@
 diff --git a/Android.bp b/Android.bp
-index 6f8fdea..c629c0d 100644
+index 4bcdbd5..bd5d904 100644
 --- a/Android.bp
 +++ b/Android.bp
 @@ -39,7 +39,7 @@ rust_library {
@@ -11,3 +11,11 @@ index 6f8fdea..c629c0d 100644
      edition: "2018",
      features: [
          "_gen-bindings",
+@@ -48,6 +48,7 @@ rust_library {
+         "boringssl",
+         "boringssl-src",
+     ],
++    cfgs: ["soong"],
+     rustlibs: [
+         "liblibc",
+         "liblibz_sys",
