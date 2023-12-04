@@ -19,6 +19,8 @@
 #include <limits.h>
 
 #include <cstddef>
+// Added to fix compilation errors as it was missing. Should be fixed upstream.
+#include <cstdint>
 #include <cstring>
 #include <ostream>
 

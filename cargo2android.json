@@ -5,7 +5,6 @@
   ],
   "device": true,
   "features": "boringssl,_gen-bindings",
-  "ignore-cargo-errors": true,
   "min-sdk-version": "29",
   "no-pkg-vers": true,
   "patch": "patches/Android.bp.patch",
