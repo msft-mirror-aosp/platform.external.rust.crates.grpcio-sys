@@ -39,10 +39,7 @@ rust_library {
     host_supported: true,
     crate_name: "grpcio_sys",
     cargo_env_compat: true,
-    srcs: [
-        "src/lib.rs",
-        ":libgrpc_bindgen",
-    ],
+    srcs: ["src/lib.rs", ":libgrpc_bindgen"],
     edition: "2018",
     features: [
         "_gen-bindings",
@@ -51,21 +48,22 @@ rust_library {
         "boringssl",
         "boringssl-src",
     ],
+    cfgs: ["soong"],
     rustlibs: [
         "liblibc",
         "liblibz_sys",
-    ],
-    shared_libs: [
-        "libgrpc++",
-        "libgrpc_wrap"
     ],
     apex_available: [
         "//apex_available:platform",
         "com.android.btservices",
     ],
-    product_available: false,
     vendor_available: true,
     min_sdk_version: "29",
+    shared_libs: [
+        "libgrpc++",
+        "libgrpc_wrap"
+    ]
+    ,
 }
 
 cc_defaults {
@@ -130,3 +128,4 @@ rust_test {
     clippy_lints: "none",
     lints: "none",
 }
+
