@@ -5,7 +5,7 @@ index eb98772..ae4702d 100644
 @@ -40,7 +40,7 @@ rust_library {
      crate_name: "grpcio_sys",
      cargo_env_compat: true,
-     cargo_pkg_version: "0.12.1+1.46.5-patched",
+     cargo_pkg_version: "0.13.0+1.56.2-patched",
 -    srcs: ["src/lib.rs"],
 +    srcs: ["src/lib.rs", ":libgrpc_bindgen"],
      edition: "2018",
