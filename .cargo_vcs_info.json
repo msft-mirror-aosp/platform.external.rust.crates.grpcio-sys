@@ -1,5 +1,6 @@
 {
   "git": {
-    "sha1": "61a60923255fe618589bf03ece46fff097b8cb43"
-  }
+    "sha1": "5442991f322901d28e318bac5736abe13a10794c"
+  },
+  "path_in_vcs": "grpc-sys"
 }
