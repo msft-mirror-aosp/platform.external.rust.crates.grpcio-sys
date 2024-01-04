@@ -12,13 +12,18 @@ use cmake::Config as CmakeConfig;
 use pkg_config::{Config as PkgConfig, Library};
 use walkdir::WalkDir;
 
-const GRPC_VERSION: &str = "1.44.0";
+fn grpc_version() -> &'static str {
+    let mut version = env!("CARGO_PKG_VERSION").split('+');
+    version.next().unwrap();
+    let label = version.next().unwrap();
+    label.split('-').next().unwrap()
+}
 
 include!("link-deps.rs");
 
 fn probe_library(library: &str, cargo_metadata: bool) -> Library {
     match PkgConfig::new()
-        .atleast_version(GRPC_VERSION)
+        .atleast_version(grpc_version())
         .cargo_metadata(cargo_metadata)
         .probe(library)
     {
@@ -97,18 +102,16 @@ fn list_packages(dst: &Path) {
         .print_system_libs(false)
         .env_metadata(false)
         .cargo_metadata(false)
-        .atleast_version(GRPC_VERSION);
+        .atleast_version(grpc_version());
     let grpc = cfg.probe("grpc").unwrap();
     let mut grpc_libs: HashSet<_> = grpc.libs.iter().cloned().collect();
     let grpc_unsecure = cfg.probe("grpc_unsecure").unwrap();
     let mut grpc_unsecure_libs: HashSet<_> = grpc_unsecure.libs.iter().cloned().collect();
 
     // grpc_unsecure.pc is not accurate, see also grpc/grpc#24512. Should also include "address_sorting", "upb", "cares", "z".
-    grpc_unsecure_libs.extend(
-        ["address_sorting", "upb", "cares", "z"]
-            .iter()
-            .map(|s| s.to_string()),
-    );
+    const EXTRA_LIBS: [&str; 5] = ["address_sorting", "upb", "cares", "r2", "z"];
+    grpc_unsecure_libs.extend(EXTRA_LIBS.iter().map(ToString::to_string));
+    grpc_libs.extend(EXTRA_LIBS.iter().map(ToString::to_string));
     // There is no "rt" on Windows and MacOS.
     grpc_libs.remove("rt");
     grpc_unsecure_libs.remove("rt");
@@ -222,6 +225,8 @@ fn build_grpc(cc: &mut cc::Build, library: &str) {
         config.define("gRPC_BUILD_CODEGEN", "false");
         // We don't need to build benchmarks.
         config.define("gRPC_BENCHMARK_PROVIDER", "none");
+        // Check https://github.com/protocolbuffers/protobuf/issues/12185
+        config.define("ABSL_ENABLE_INSTALL", "ON");
 
         // `package` should only be set for secure feature, otherwise cmake will always search for
         // ssl library.
@@ -288,7 +293,36 @@ fn build_grpc(cc: &mut cc::Build, library: &str) {
         }
     }
 
+    figure_systemd_path(&build_dir);
+
     cc.include("grpc/include");
+}
+
+fn figure_systemd_path(build_dir: &str) {
+    let path = format!("{build_dir}/CMakeCache.txt");
+    let f = BufReader::new(std::fs::File::open(&path).unwrap());
+    let mut libdir: Option<String> = None;
+    let mut libname: Option<String> = None;
+    for l in f.lines() {
+        let l = l.unwrap();
+        if let Some(s) = trim_start(&l, "SYSTEMD_LIBDIR:INTERNAL=").filter(|s| !s.is_empty()) {
+            libdir = Some(s.to_owned());
+            if libname.is_some() {
+                break;
+            }
+        } else if let Some(s) =
+            trim_start(&l, "SYSTEMD_LIBRARIES:INTERNAL=").filter(|s| !s.is_empty())
+        {
+            libname = Some(s.to_owned());
+            if libdir.is_some() {
+                break;
+            }
+        }
+    }
+    if let (Some(libdir), Some(libname)) = (libdir, libname) {
+        println!("cargo:rustc-link-search=native={}", libdir);
+        println!("cargo:rustc-link-lib={}", libname);
+    }
 }
 
 fn figure_ssl_path(build_dir: &str) {
@@ -451,6 +485,7 @@ fn config_binding_path() {
     let file_path: PathBuf = match target.as_str() {
         "x86_64-unknown-linux-gnu"
         | "x86_64-unknown-linux-musl"
+        | "aarch64-unknown-linux-musl"
         | "aarch64-unknown-linux-gnu"
         | "x86_64-apple-darwin"
         | "aarch64-apple-darwin" => {
