@@ -7,47 +7,50 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "envoy/config/core/v3/extension.upb.h"
-#include "envoy/config/core/v3/config_source.upb.h"
 #include "google/protobuf/any.upb.h"
 #include "udpa/annotations/status.upb.h"
 #include "validate/validate.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout *const envoy_config_core_v3_TypedExtensionConfig_submsgs[1] = {
-  &google_protobuf_Any_msginit,
+static const upb_MiniTableSub envoy_config_core_v3_TypedExtensionConfig_submsgs[1] = {
+  {.submsg = &google_protobuf_Any_msg_init},
 };
 
-static const upb_msglayout_field envoy_config_core_v3_TypedExtensionConfig__fields[2] = {
-  {1, UPB_SIZE(4, 8), 0, 0, 9, 1},
-  {2, UPB_SIZE(12, 24), 1, 0, 11, 1},
+static const upb_MiniTableField envoy_config_core_v3_TypedExtensionConfig__fields[2] = {
+  {1, 8, 0, kUpb_NoSub, 9, kUpb_FieldMode_Scalar | (kUpb_FieldRep_StringView << kUpb_FieldRep_Shift)},
+  {2, UPB_SIZE(4, 24), 1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout envoy_config_core_v3_TypedExtensionConfig_msginit = {
+const upb_MiniTable envoy_config_core_v3_TypedExtensionConfig_msg_init = {
   &envoy_config_core_v3_TypedExtensionConfig_submsgs[0],
   &envoy_config_core_v3_TypedExtensionConfig__fields[0],
-  UPB_SIZE(16, 32), 2, false, 255,
+  UPB_SIZE(16, 32), 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800003f00000a, &upb_pss_1bt},
+    {0x0018000001000012, &upb_psm_1bt_maxmaxb},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-static const upb_msglayout *const envoy_config_core_v3_ExtensionConfigSource_submsgs[2] = {
-  &envoy_config_core_v3_ConfigSource_msginit,
-  &google_protobuf_Any_msginit,
+static const upb_MiniTable *messages_layout[1] = {
+  &envoy_config_core_v3_TypedExtensionConfig_msg_init,
 };
 
-static const upb_msglayout_field envoy_config_core_v3_ExtensionConfigSource__fields[4] = {
-  {1, UPB_SIZE(4, 8), 1, 0, 11, 1},
-  {2, UPB_SIZE(8, 16), 2, 1, 11, 1},
-  {3, UPB_SIZE(1, 1), 0, 0, 8, 1},
-  {4, UPB_SIZE(12, 24), 0, 0, 9, 3},
+const upb_MiniTableFile envoy_config_core_v3_extension_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  1,
+  0,
+  0,
 };
 
-const upb_msglayout envoy_config_core_v3_ExtensionConfigSource_msginit = {
-  &envoy_config_core_v3_ExtensionConfigSource_submsgs[0],
-  &envoy_config_core_v3_ExtensionConfigSource__fields[0],
-  UPB_SIZE(16, 32), 4, false, 255,
-};
-
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 

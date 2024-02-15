@@ -1,43 +1,57 @@
-c-ares version 1.15.0
+c-ares version 1.19.1
 
-Changes:
- o Add ares_init_options() configurability for path to resolv.conf file [1]
- o Ability to exclude building of tools (adig, ahost, acountry) in CMake [3]
- o Android: Support for domain search suffix [4]
- o Report ARES_ENOTFOUND for .onion domain names as per RFC7686. [13]
+This is a security and bugfix release.
+
+A special thanks goes out to the Open Source Technology Improvement Fund
+(https://ostif.org) for sponsoring a security audit of c-ares performed by X41
+(https://x41-dsec.de).
+
+Security:
+ o CVE-2023-32067. High. 0-byte UDP payload causes Denial of Service [12]
+ o CVE-2023-31147. Moderate. Insufficient randomness in generation of DNS
+   query IDs [13]
+ o CVE-2023-31130. Moderate. Buffer Underwrite in ares_inet_net_pton() [14]
+ o CVE-2023-31124. Low. AutoTools does not set CARES_RANDOM_FILE during cross
+   compilation [15]
 
 Bug fixes:
- o AIX build fix for trying to include both nameser_compat.h and
-   onameser_compat.h [2]
- o Windows: Improve DNS suffixes extracting from WinNT registry [5]
- o Fix modern GCC warnings [6]
- o Apply the IPv6 server blacklist to all nameserver sources, not just Windows
-   [7]
- o Fix warnings emitted by MSVC when using -W4 [8]
- o Prevent changing name servers while queries are outstanding [9]
- o Harden and rationalize c-ares timeout computation [10]
- o Distribute ares_android.h [11]
- o ares_set_servers_csv() on failure should not leave channel in a bad state
-   [12]
- o Add missing docs to distribution
+ o Fix uninitialized memory warning in test [1]
+ o Turn off IPV6_V6ONLY on Windows to allow IPv4-mapped IPv6 addresses [2]
+ o ares_getaddrinfo() should allow a port of 0 [3]
+ o Fix memory leak in ares_send() on error [4]
+ o Fix comment style in ares_data.h [5]
+ o Remove unneeded ifdef for Windows [6]
+ o Fix typo in ares_init_options.3 [7]
+ o Re-add support for Watcom compiler [8]
+ o Sync ax_pthread.m4 with upstream [9]
+ o Windows: Invalid stack variable used out of scope for HOSTS path [10]
+ o Sync ax_cxx_compile_stdcxx_11.m4 with upstream to fix uclibc support [11]
 
 Thanks go to these friendly people for their efforts and contributions:
-  @afalin, Andi Schnebinger, Ben Noordhuis, Brad House, Brad Spencer,
-  David Hotham, @flyingdutchman23, John Schember, Ruslan Baratov,
-  Sarat Addepalli, Tobias Nießen (11 contributors)
+  Brad House (@bradh352)
+  @Chilledheart
+  Daniel Stenberg (@bagder)
+  Douglas R. Reno (@renodr)
+  Gregor Jasny (@gjasny)
+  Jay Freeman (@saurik)
+  @lifenjoiner
+  Nikolaos Chatzikonstantinou (@createyourpersonalaccount)
+  Yijie Ma (@yijiem)
+(9 contributors)
 
 References to bug reports and discussions on issues:
- [1] = https://github.com/c-ares/c-ares/issues/220
- [2] = https://github.com/c-ares/c-ares/issues/224
- [3] = https://github.com/c-ares/c-ares/issues/200
- [4] = https://github.com/c-ares/c-ares/issues/207
- [5] = https://github.com/c-ares/c-ares/pull/202
- [6] = https://github.com/c-ares/c-ares/pull/201
- [7] = https://github.com/c-ares/c-ares/pull/193
- [8] = https://github.com/c-ares/c-ares/pull/192
- [9] = https://github.com/c-ares/c-ares/pull/191
- [10] = https://github.com/c-ares/c-ares/pull/187
- [11] = https://c-ares.haxx.se/mail/c-ares-archive-2018-04/0000.shtml
- [12] = https://c-ares.haxx.se/mail/c-ares-archive-2018-03/0000.shtml
- [13] = https://github.com/c-ares/c-ares/issues/196
-
+ [1] = https://github.com/c-ares/c-ares/pull/515
+ [2] = https://github.com/c-ares/c-ares/pull/520
+ [3] = https://github.com/c-ares/c-ares/issues/517
+ [4] = https://github.com/c-ares/c-ares/pull/511
+ [5] = https://github.com/c-ares/c-ares/pull/513
+ [6] = https://github.com/c-ares/c-ares/pull/512
+ [7] = https://github.com/c-ares/c-ares/pull/510
+ [8] = https://github.com/c-ares/c-ares/pull/509
+ [9] = https://github.com/c-ares/c-ares/pull/507
+ [10] = https://github.com/c-ares/c-ares/pull/502
+ [11] = https://github.com/c-ares/c-ares/pull/505
+ [12] = https://github.com/c-ares/c-ares/security/advisories/GHSA-9g78-jv2r-p7vc
+ [13] = https://github.com/c-ares/c-ares/security/advisories/GHSA-8r8p-23f3-64c2
+ [14] = https://github.com/c-ares/c-ares/security/advisories/GHSA-x6mf-cxr9-8q6v
+ [15] = https://github.com/c-ares/c-ares/security/advisories/GHSA-54xr-f67r-4pc4

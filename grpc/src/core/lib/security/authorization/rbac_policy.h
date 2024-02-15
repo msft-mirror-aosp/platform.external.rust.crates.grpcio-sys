@@ -12,23 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GRPC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H
-#define GRPC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H
+#ifndef GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H
+#define GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H
 
 #include <grpc/support/port_platform.h>
 
+#include <stdint.h>
+
+#include <map>
 #include <memory>
+#include <string>
+#include <vector>
+
+#include "absl/types/optional.h"
+
+#include <grpc/grpc_audit_logging.h>
 
 #include "src/core/lib/matchers/matchers.h"
 
 namespace grpc_core {
 
 // Represents Envoy RBAC Proto. [See
-// https://github.com/envoyproxy/envoy/blob/release/v1.17/api/envoy/config/rbac/v3/rbac.proto]
+// https://github.com/envoyproxy/envoy/blob/release/v1.26/api/envoy/config/rbac/v3/rbac.proto]
 struct Rbac {
   enum class Action {
     kAllow,
     kDeny,
+  };
+
+  enum class AuditCondition {
+    kNone,
+    kOnDeny,
+    kOnAllow,
+    kOnDenyAndAllow,
   };
 
   struct CidrRange {
@@ -44,56 +60,59 @@ struct Rbac {
     uint32_t prefix_len;
   };
 
-  // TODO(ashithasantosh): Add metadata field to Permission and Principal.
+  // TODO(ashithasantosh): Support for destination_port_range.
   struct Permission {
     enum class RuleType {
       kAnd,
       kOr,
+      kNot,
       kAny,
       kHeader,
       kPath,
       kDestIp,
       kDestPort,
+      kMetadata,
       kReqServerName,
     };
 
+    static Permission MakeAndPermission(
+        std::vector<std::unique_ptr<Permission>> permissions);
+    static Permission MakeOrPermission(
+        std::vector<std::unique_ptr<Permission>> permissions);
+    static Permission MakeNotPermission(Permission permission);
+    static Permission MakeAnyPermission();
+    static Permission MakeHeaderPermission(HeaderMatcher header_matcher);
+    static Permission MakePathPermission(StringMatcher string_matcher);
+    static Permission MakeDestIpPermission(CidrRange ip);
+    static Permission MakeDestPortPermission(int port);
+    // All the other fields in MetadataMatcher are ignored except invert.
+    static Permission MakeMetadataPermission(bool invert);
+    static Permission MakeReqServerNamePermission(StringMatcher string_matcher);
+
     Permission() = default;
-    // For AND/OR RuleType.
-    Permission(Permission::RuleType type,
-               std::vector<std::unique_ptr<Permission>> permissions,
-               bool not_rule = false);
-    // For ANY RuleType.
-    explicit Permission(Permission::RuleType type, bool not_rule = false);
-    // For HEADER RuleType.
-    Permission(Permission::RuleType type, HeaderMatcher header_matcher,
-               bool not_rule = false);
-    // For PATH/REQ_SERVER_NAME RuleType.
-    Permission(Permission::RuleType type, StringMatcher string_matcher,
-               bool not_rule = false);
-    // For DEST_IP RuleType.
-    Permission(Permission::RuleType type, CidrRange ip, bool not_rule = false);
-    // For DEST_PORT RuleType.
-    Permission(Permission::RuleType type, int port, bool not_rule = false);
 
     Permission(Permission&& other) noexcept;
     Permission& operator=(Permission&& other) noexcept;
 
     std::string ToString() const;
 
-    RuleType type;
+    RuleType type = RuleType::kAnd;
     HeaderMatcher header_matcher;
     StringMatcher string_matcher;
     CidrRange ip;
     int port;
-    // For type AND/OR.
+    // For type kAnd/kOr/kNot. For kNot type, the vector will have only one
+    // element.
     std::vector<std::unique_ptr<Permission>> permissions;
-    bool not_rule = false;
+    // For kMetadata
+    bool invert = false;
   };
 
   struct Principal {
     enum class RuleType {
       kAnd,
       kOr,
+      kNot,
       kAny,
       kPrincipalName,
       kSourceIp,
@@ -101,36 +120,41 @@ struct Rbac {
       kRemoteIp,
       kHeader,
       kPath,
+      kMetadata,
     };
 
+    static Principal MakeAndPrincipal(
+        std::vector<std::unique_ptr<Principal>> principals);
+    static Principal MakeOrPrincipal(
+        std::vector<std::unique_ptr<Principal>> principals);
+    static Principal MakeNotPrincipal(Principal principal);
+    static Principal MakeAnyPrincipal();
+    static Principal MakeAuthenticatedPrincipal(
+        absl::optional<StringMatcher> string_matcher);
+    static Principal MakeSourceIpPrincipal(CidrRange ip);
+    static Principal MakeDirectRemoteIpPrincipal(CidrRange ip);
+    static Principal MakeRemoteIpPrincipal(CidrRange ip);
+    static Principal MakeHeaderPrincipal(HeaderMatcher header_matcher);
+    static Principal MakePathPrincipal(StringMatcher string_matcher);
+    // All the other fields in MetadataMatcher are ignored except invert.
+    static Principal MakeMetadataPrincipal(bool invert);
+
     Principal() = default;
-    // For AND/OR RuleType.
-    Principal(Principal::RuleType type,
-              std::vector<std::unique_ptr<Principal>> principals,
-              bool not_rule = false);
-    // For ANY RuleType.
-    explicit Principal(Principal::RuleType type, bool not_rule = false);
-    // For PRINCIPAL_NAME/PATH RuleType.
-    Principal(Principal::RuleType type, StringMatcher string_matcher,
-              bool not_rule = false);
-    // For SOURCE_IP/DIRECT_REMOTE_IP/REMOTE_IP RuleType.
-    Principal(Principal::RuleType type, CidrRange ip, bool not_rule = false);
-    // For HEADER RuleType.
-    Principal(Principal::RuleType type, HeaderMatcher header_matcher,
-              bool not_rule = false);
 
     Principal(Principal&& other) noexcept;
     Principal& operator=(Principal&& other) noexcept;
 
     std::string ToString() const;
 
-    RuleType type;
+    RuleType type = RuleType::kAnd;
     HeaderMatcher header_matcher;
-    StringMatcher string_matcher;
+    absl::optional<StringMatcher> string_matcher;
     CidrRange ip;
-    // For type AND/OR.
+    // For type kAnd/kOr/kNot. For kNot type, the vector will have only one
+    // element.
     std::vector<std::unique_ptr<Principal>> principals;
-    bool not_rule = false;
+    // For kMetadata
+    bool invert = false;
   };
 
   struct Policy {
@@ -147,17 +171,25 @@ struct Rbac {
   };
 
   Rbac() = default;
-  Rbac(Rbac::Action action, std::map<std::string, Policy> policies);
+  Rbac(std::string name, Rbac::Action action,
+       std::map<std::string, Policy> policies);
 
   Rbac(Rbac&& other) noexcept;
   Rbac& operator=(Rbac&& other) noexcept;
 
   std::string ToString() const;
 
+  // The authorization policy name or the HTTP RBAC filter name.
+  std::string name;
+
   Action action;
   std::map<std::string, Policy> policies;
+
+  AuditCondition audit_condition;
+  std::vector<std::unique_ptr<experimental::AuditLoggerFactory::Config>>
+      logger_configs;
 };
 
 }  // namespace grpc_core
 
-#endif /* GRPC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H */
+#endif  // GRPC_SRC_CORE_LIB_SECURITY_AUTHORIZATION_RBAC_POLICY_H

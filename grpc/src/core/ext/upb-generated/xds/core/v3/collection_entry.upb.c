@@ -7,46 +7,75 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "xds/core/v3/collection_entry.upb.h"
 #include "google/protobuf/any.upb.h"
-#include "udpa/annotations/status.upb.h"
+#include "xds/annotations/v3/status.upb.h"
 #include "xds/core/v3/resource_locator.upb.h"
 #include "validate/validate.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout *const xds_core_v3_CollectionEntry_submsgs[2] = {
-  &xds_core_v3_CollectionEntry_InlineEntry_msginit,
-  &xds_core_v3_ResourceLocator_msginit,
+static const upb_MiniTableSub xds_core_v3_CollectionEntry_submsgs[2] = {
+  {.submsg = &xds_core_v3_ResourceLocator_msg_init},
+  {.submsg = &xds_core_v3_CollectionEntry_InlineEntry_msg_init},
 };
 
-static const upb_msglayout_field xds_core_v3_CollectionEntry__fields[2] = {
-  {1, UPB_SIZE(0, 0), UPB_SIZE(-5, -9), 1, 11, 1},
-  {2, UPB_SIZE(0, 0), UPB_SIZE(-5, -9), 0, 11, 1},
+static const upb_MiniTableField xds_core_v3_CollectionEntry__fields[2] = {
+  {1, UPB_SIZE(4, 8), -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
+  {2, UPB_SIZE(4, 8), -1, 1, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout xds_core_v3_CollectionEntry_msginit = {
+const upb_MiniTable xds_core_v3_CollectionEntry_msg_init = {
   &xds_core_v3_CollectionEntry_submsgs[0],
   &xds_core_v3_CollectionEntry__fields[0],
-  UPB_SIZE(8, 16), 2, false, 255,
+  UPB_SIZE(8, 16), 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800000100000a, &upb_pom_1bt_maxmaxb},
+    {0x0008000002010012, &upb_pom_1bt_max64b},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-static const upb_msglayout *const xds_core_v3_CollectionEntry_InlineEntry_submsgs[1] = {
-  &google_protobuf_Any_msginit,
+static const upb_MiniTableSub xds_core_v3_CollectionEntry_InlineEntry_submsgs[1] = {
+  {.submsg = &google_protobuf_Any_msg_init},
 };
 
-static const upb_msglayout_field xds_core_v3_CollectionEntry_InlineEntry__fields[3] = {
-  {1, UPB_SIZE(4, 8), 0, 0, 9, 1},
-  {2, UPB_SIZE(12, 24), 0, 0, 9, 1},
-  {3, UPB_SIZE(20, 40), 1, 0, 11, 1},
+static const upb_MiniTableField xds_core_v3_CollectionEntry_InlineEntry__fields[3] = {
+  {1, 8, 0, kUpb_NoSub, 9, kUpb_FieldMode_Scalar | (kUpb_FieldRep_StringView << kUpb_FieldRep_Shift)},
+  {2, UPB_SIZE(16, 24), 0, kUpb_NoSub, 9, kUpb_FieldMode_Scalar | (kUpb_FieldRep_StringView << kUpb_FieldRep_Shift)},
+  {3, UPB_SIZE(4, 40), 1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout xds_core_v3_CollectionEntry_InlineEntry_msginit = {
+const upb_MiniTable xds_core_v3_CollectionEntry_InlineEntry_msg_init = {
   &xds_core_v3_CollectionEntry_InlineEntry_submsgs[0],
   &xds_core_v3_CollectionEntry_InlineEntry__fields[0],
-  UPB_SIZE(24, 48), 3, false, 255,
+  UPB_SIZE(24, 48), 3, kUpb_ExtMode_NonExtendable, 3, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800003f00000a, &upb_pss_1bt},
+    {0x001800003f000012, &upb_pss_1bt},
+    {0x002800000100001a, &upb_psm_1bt_maxmaxb},
+  })
 };
 
-#include "upb/port_undef.inc"
+static const upb_MiniTable *messages_layout[2] = {
+  &xds_core_v3_CollectionEntry_msg_init,
+  &xds_core_v3_CollectionEntry_InlineEntry_msg_init,
+};
+
+const upb_MiniTableFile xds_core_v3_collection_entry_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  2,
+  0,
+  0,
+};
+
+#include "upb/port/undef.inc"
 

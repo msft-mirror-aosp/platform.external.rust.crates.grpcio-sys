@@ -9,76 +9,127 @@
 #ifndef ENVOY_TYPE_MATCHER_V3_NUMBER_PROTO_UPB_H_
 #define ENVOY_TYPE_MATCHER_V3_NUMBER_PROTO_UPB_H_
 
-#include "upb/msg.h"
-#include "upb/decode.h"
-#include "upb/decode_fast.h"
-#include "upb/encode.h"
+#include "upb/collections/array_internal.h"
+#include "upb/collections/map_gencode_util.h"
+#include "upb/message/accessors.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
+#include "upb/wire/decode.h"
+#include "upb/wire/decode_fast.h"
+#include "upb/wire/encode.h"
 
-#include "upb/port_def.inc"
+// Must be last. 
+#include "upb/port/def.inc"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct envoy_type_matcher_v3_DoubleMatcher;
 typedef struct envoy_type_matcher_v3_DoubleMatcher envoy_type_matcher_v3_DoubleMatcher;
-extern const upb_msglayout envoy_type_matcher_v3_DoubleMatcher_msginit;
+extern const upb_MiniTable envoy_type_matcher_v3_DoubleMatcher_msg_init;
 struct envoy_type_v3_DoubleRange;
-extern const upb_msglayout envoy_type_v3_DoubleRange_msginit;
+extern const upb_MiniTable envoy_type_v3_DoubleRange_msg_init;
+
 
 
 /* envoy.type.matcher.v3.DoubleMatcher */
 
-UPB_INLINE envoy_type_matcher_v3_DoubleMatcher *envoy_type_matcher_v3_DoubleMatcher_new(upb_arena *arena) {
-  return (envoy_type_matcher_v3_DoubleMatcher *)_upb_msg_new(&envoy_type_matcher_v3_DoubleMatcher_msginit, arena);
+UPB_INLINE envoy_type_matcher_v3_DoubleMatcher* envoy_type_matcher_v3_DoubleMatcher_new(upb_Arena* arena) {
+  return (envoy_type_matcher_v3_DoubleMatcher*)_upb_Message_New(&envoy_type_matcher_v3_DoubleMatcher_msg_init, arena);
 }
-UPB_INLINE envoy_type_matcher_v3_DoubleMatcher *envoy_type_matcher_v3_DoubleMatcher_parse(const char *buf, size_t size,
-                        upb_arena *arena) {
-  envoy_type_matcher_v3_DoubleMatcher *ret = envoy_type_matcher_v3_DoubleMatcher_new(arena);
-  return (ret && upb_decode(buf, size, ret, &envoy_type_matcher_v3_DoubleMatcher_msginit, arena)) ? ret : NULL;
+UPB_INLINE envoy_type_matcher_v3_DoubleMatcher* envoy_type_matcher_v3_DoubleMatcher_parse(const char* buf, size_t size, upb_Arena* arena) {
+  envoy_type_matcher_v3_DoubleMatcher* ret = envoy_type_matcher_v3_DoubleMatcher_new(arena);
+  if (!ret) return NULL;
+  if (upb_Decode(buf, size, ret, &envoy_type_matcher_v3_DoubleMatcher_msg_init, NULL, 0, arena) != kUpb_DecodeStatus_Ok) {
+    return NULL;
+  }
+  return ret;
 }
-UPB_INLINE envoy_type_matcher_v3_DoubleMatcher *envoy_type_matcher_v3_DoubleMatcher_parse_ex(const char *buf, size_t size,
-                           upb_arena *arena, int options) {
-  envoy_type_matcher_v3_DoubleMatcher *ret = envoy_type_matcher_v3_DoubleMatcher_new(arena);
-  return (ret && _upb_decode(buf, size, ret, &envoy_type_matcher_v3_DoubleMatcher_msginit, arena, options))
-      ? ret : NULL;
+UPB_INLINE envoy_type_matcher_v3_DoubleMatcher* envoy_type_matcher_v3_DoubleMatcher_parse_ex(const char* buf, size_t size,
+                           const upb_ExtensionRegistry* extreg,
+                           int options, upb_Arena* arena) {
+  envoy_type_matcher_v3_DoubleMatcher* ret = envoy_type_matcher_v3_DoubleMatcher_new(arena);
+  if (!ret) return NULL;
+  if (upb_Decode(buf, size, ret, &envoy_type_matcher_v3_DoubleMatcher_msg_init, extreg, options, arena) !=
+      kUpb_DecodeStatus_Ok) {
+    return NULL;
+  }
+  return ret;
 }
-UPB_INLINE char *envoy_type_matcher_v3_DoubleMatcher_serialize(const envoy_type_matcher_v3_DoubleMatcher *msg, upb_arena *arena, size_t *len) {
-  return upb_encode(msg, &envoy_type_matcher_v3_DoubleMatcher_msginit, arena, len);
+UPB_INLINE char* envoy_type_matcher_v3_DoubleMatcher_serialize(const envoy_type_matcher_v3_DoubleMatcher* msg, upb_Arena* arena, size_t* len) {
+  char* ptr;
+  (void)upb_Encode(msg, &envoy_type_matcher_v3_DoubleMatcher_msg_init, 0, arena, &ptr, len);
+  return ptr;
 }
-
+UPB_INLINE char* envoy_type_matcher_v3_DoubleMatcher_serialize_ex(const envoy_type_matcher_v3_DoubleMatcher* msg, int options,
+                                 upb_Arena* arena, size_t* len) {
+  char* ptr;
+  (void)upb_Encode(msg, &envoy_type_matcher_v3_DoubleMatcher_msg_init, options, arena, &ptr, len);
+  return ptr;
+}
 typedef enum {
   envoy_type_matcher_v3_DoubleMatcher_match_pattern_range = 1,
   envoy_type_matcher_v3_DoubleMatcher_match_pattern_exact = 2,
   envoy_type_matcher_v3_DoubleMatcher_match_pattern_NOT_SET = 0
 } envoy_type_matcher_v3_DoubleMatcher_match_pattern_oneofcases;
-UPB_INLINE envoy_type_matcher_v3_DoubleMatcher_match_pattern_oneofcases envoy_type_matcher_v3_DoubleMatcher_match_pattern_case(const envoy_type_matcher_v3_DoubleMatcher* msg) { return (envoy_type_matcher_v3_DoubleMatcher_match_pattern_oneofcases)*UPB_PTR_AT(msg, UPB_SIZE(8, 8), int32_t); }
-
-UPB_INLINE bool envoy_type_matcher_v3_DoubleMatcher_has_range(const envoy_type_matcher_v3_DoubleMatcher *msg) { return _upb_getoneofcase(msg, UPB_SIZE(8, 8)) == 1; }
-UPB_INLINE const struct envoy_type_v3_DoubleRange* envoy_type_matcher_v3_DoubleMatcher_range(const envoy_type_matcher_v3_DoubleMatcher *msg) { return UPB_READ_ONEOF(msg, const struct envoy_type_v3_DoubleRange*, UPB_SIZE(0, 0), UPB_SIZE(8, 8), 1, NULL); }
-UPB_INLINE bool envoy_type_matcher_v3_DoubleMatcher_has_exact(const envoy_type_matcher_v3_DoubleMatcher *msg) { return _upb_getoneofcase(msg, UPB_SIZE(8, 8)) == 2; }
-UPB_INLINE double envoy_type_matcher_v3_DoubleMatcher_exact(const envoy_type_matcher_v3_DoubleMatcher *msg) { return UPB_READ_ONEOF(msg, double, UPB_SIZE(0, 0), UPB_SIZE(8, 8), 2, 0); }
+UPB_INLINE envoy_type_matcher_v3_DoubleMatcher_match_pattern_oneofcases envoy_type_matcher_v3_DoubleMatcher_match_pattern_case(const envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const upb_MiniTableField field = {1, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)};
+  return (envoy_type_matcher_v3_DoubleMatcher_match_pattern_oneofcases)upb_Message_WhichOneofFieldNumber(msg, &field);
+}
+UPB_INLINE void envoy_type_matcher_v3_DoubleMatcher_clear_range(envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const upb_MiniTableField field = {1, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)};
+  _upb_Message_ClearNonExtensionField(msg, &field);
+}
+UPB_INLINE const struct envoy_type_v3_DoubleRange* envoy_type_matcher_v3_DoubleMatcher_range(const envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const struct envoy_type_v3_DoubleRange* default_val = NULL;
+  const struct envoy_type_v3_DoubleRange* ret;
+  const upb_MiniTableField field = {1, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)};
+  _upb_Message_GetNonExtensionField(msg, &field, &default_val, &ret);
+  return ret;
+}
+UPB_INLINE bool envoy_type_matcher_v3_DoubleMatcher_has_range(const envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const upb_MiniTableField field = {1, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)};
+  return _upb_Message_HasNonExtensionField(msg, &field);
+}
+UPB_INLINE void envoy_type_matcher_v3_DoubleMatcher_clear_exact(envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const upb_MiniTableField field = {2, 8, -1, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)};
+  _upb_Message_ClearNonExtensionField(msg, &field);
+}
+UPB_INLINE double envoy_type_matcher_v3_DoubleMatcher_exact(const envoy_type_matcher_v3_DoubleMatcher* msg) {
+  double default_val = 0;
+  double ret;
+  const upb_MiniTableField field = {2, 8, -1, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)};
+  _upb_Message_GetNonExtensionField(msg, &field, &default_val, &ret);
+  return ret;
+}
+UPB_INLINE bool envoy_type_matcher_v3_DoubleMatcher_has_exact(const envoy_type_matcher_v3_DoubleMatcher* msg) {
+  const upb_MiniTableField field = {2, 8, -1, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)};
+  return _upb_Message_HasNonExtensionField(msg, &field);
+}
 
 UPB_INLINE void envoy_type_matcher_v3_DoubleMatcher_set_range(envoy_type_matcher_v3_DoubleMatcher *msg, struct envoy_type_v3_DoubleRange* value) {
-  UPB_WRITE_ONEOF(msg, struct envoy_type_v3_DoubleRange*, UPB_SIZE(0, 0), value, UPB_SIZE(8, 8), 1);
+  const upb_MiniTableField field = {1, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)};
+  _upb_Message_SetNonExtensionField(msg, &field, &value);
 }
-UPB_INLINE struct envoy_type_v3_DoubleRange* envoy_type_matcher_v3_DoubleMatcher_mutable_range(envoy_type_matcher_v3_DoubleMatcher *msg, upb_arena *arena) {
+UPB_INLINE struct envoy_type_v3_DoubleRange* envoy_type_matcher_v3_DoubleMatcher_mutable_range(envoy_type_matcher_v3_DoubleMatcher* msg, upb_Arena* arena) {
   struct envoy_type_v3_DoubleRange* sub = (struct envoy_type_v3_DoubleRange*)envoy_type_matcher_v3_DoubleMatcher_range(msg);
   if (sub == NULL) {
-    sub = (struct envoy_type_v3_DoubleRange*)_upb_msg_new(&envoy_type_v3_DoubleRange_msginit, arena);
-    if (!sub) return NULL;
-    envoy_type_matcher_v3_DoubleMatcher_set_range(msg, sub);
+    sub = (struct envoy_type_v3_DoubleRange*)_upb_Message_New(&envoy_type_v3_DoubleRange_msg_init, arena);
+    if (sub) envoy_type_matcher_v3_DoubleMatcher_set_range(msg, sub);
   }
   return sub;
 }
 UPB_INLINE void envoy_type_matcher_v3_DoubleMatcher_set_exact(envoy_type_matcher_v3_DoubleMatcher *msg, double value) {
-  UPB_WRITE_ONEOF(msg, double, UPB_SIZE(0, 0), value, UPB_SIZE(8, 8), 2);
+  const upb_MiniTableField field = {2, 8, -1, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)};
+  _upb_Message_SetNonExtensionField(msg, &field, &value);
 }
+
+extern const upb_MiniTableFile envoy_type_matcher_v3_number_proto_upb_file_layout;
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 
 #endif  /* ENVOY_TYPE_MATCHER_V3_NUMBER_PROTO_UPB_H_ */

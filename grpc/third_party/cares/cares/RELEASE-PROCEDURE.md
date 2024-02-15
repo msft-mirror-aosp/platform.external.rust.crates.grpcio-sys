@@ -6,7 +6,7 @@ in the source code repo
 
 - edit `RELEASE-NOTES` to be accurate
 
-- edit `Makefile.am`'s `CARES_VERSION_INFO`, and `CMakeLists.txt`'s
+- edit `configure.ac`'s `CARES_VERSION_INFO`, and `CMakeLists.txt`'s
   `CARES_LIB_VERSIONINFO` set to the same value to denote the current shared
   object versioning.
 
@@ -24,7 +24,7 @@ in the source code repo
 
 - gpg sign the tarball
 
-- upload the resulting files to https://c-ares.haxx.se/download/
+- upload the resulting files to https://c-ares.org/download/
 
 - update `ares_version.h` for the next version
 

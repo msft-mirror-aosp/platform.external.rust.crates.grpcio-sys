@@ -9,48 +9,70 @@
 #ifndef ENVOY_SERVICE_DISCOVERY_V3_ADS_PROTO_UPB_H_
 #define ENVOY_SERVICE_DISCOVERY_V3_ADS_PROTO_UPB_H_
 
-#include "upb/msg.h"
-#include "upb/decode.h"
-#include "upb/decode_fast.h"
-#include "upb/encode.h"
+#include "upb/collections/array_internal.h"
+#include "upb/collections/map_gencode_util.h"
+#include "upb/message/accessors.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
+#include "upb/wire/decode.h"
+#include "upb/wire/decode_fast.h"
+#include "upb/wire/encode.h"
 
-#include "upb/port_def.inc"
+// Must be last. 
+#include "upb/port/def.inc"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct envoy_service_discovery_v3_AdsDummy;
 typedef struct envoy_service_discovery_v3_AdsDummy envoy_service_discovery_v3_AdsDummy;
-extern const upb_msglayout envoy_service_discovery_v3_AdsDummy_msginit;
+extern const upb_MiniTable envoy_service_discovery_v3_AdsDummy_msg_init;
+
 
 
 /* envoy.service.discovery.v3.AdsDummy */
 
-UPB_INLINE envoy_service_discovery_v3_AdsDummy *envoy_service_discovery_v3_AdsDummy_new(upb_arena *arena) {
-  return (envoy_service_discovery_v3_AdsDummy *)_upb_msg_new(&envoy_service_discovery_v3_AdsDummy_msginit, arena);
+UPB_INLINE envoy_service_discovery_v3_AdsDummy* envoy_service_discovery_v3_AdsDummy_new(upb_Arena* arena) {
+  return (envoy_service_discovery_v3_AdsDummy*)_upb_Message_New(&envoy_service_discovery_v3_AdsDummy_msg_init, arena);
 }
-UPB_INLINE envoy_service_discovery_v3_AdsDummy *envoy_service_discovery_v3_AdsDummy_parse(const char *buf, size_t size,
-                        upb_arena *arena) {
-  envoy_service_discovery_v3_AdsDummy *ret = envoy_service_discovery_v3_AdsDummy_new(arena);
-  return (ret && upb_decode(buf, size, ret, &envoy_service_discovery_v3_AdsDummy_msginit, arena)) ? ret : NULL;
+UPB_INLINE envoy_service_discovery_v3_AdsDummy* envoy_service_discovery_v3_AdsDummy_parse(const char* buf, size_t size, upb_Arena* arena) {
+  envoy_service_discovery_v3_AdsDummy* ret = envoy_service_discovery_v3_AdsDummy_new(arena);
+  if (!ret) return NULL;
+  if (upb_Decode(buf, size, ret, &envoy_service_discovery_v3_AdsDummy_msg_init, NULL, 0, arena) != kUpb_DecodeStatus_Ok) {
+    return NULL;
+  }
+  return ret;
 }
-UPB_INLINE envoy_service_discovery_v3_AdsDummy *envoy_service_discovery_v3_AdsDummy_parse_ex(const char *buf, size_t size,
-                           upb_arena *arena, int options) {
-  envoy_service_discovery_v3_AdsDummy *ret = envoy_service_discovery_v3_AdsDummy_new(arena);
-  return (ret && _upb_decode(buf, size, ret, &envoy_service_discovery_v3_AdsDummy_msginit, arena, options))
-      ? ret : NULL;
+UPB_INLINE envoy_service_discovery_v3_AdsDummy* envoy_service_discovery_v3_AdsDummy_parse_ex(const char* buf, size_t size,
+                           const upb_ExtensionRegistry* extreg,
+                           int options, upb_Arena* arena) {
+  envoy_service_discovery_v3_AdsDummy* ret = envoy_service_discovery_v3_AdsDummy_new(arena);
+  if (!ret) return NULL;
+  if (upb_Decode(buf, size, ret, &envoy_service_discovery_v3_AdsDummy_msg_init, extreg, options, arena) !=
+      kUpb_DecodeStatus_Ok) {
+    return NULL;
+  }
+  return ret;
 }
-UPB_INLINE char *envoy_service_discovery_v3_AdsDummy_serialize(const envoy_service_discovery_v3_AdsDummy *msg, upb_arena *arena, size_t *len) {
-  return upb_encode(msg, &envoy_service_discovery_v3_AdsDummy_msginit, arena, len);
+UPB_INLINE char* envoy_service_discovery_v3_AdsDummy_serialize(const envoy_service_discovery_v3_AdsDummy* msg, upb_Arena* arena, size_t* len) {
+  char* ptr;
+  (void)upb_Encode(msg, &envoy_service_discovery_v3_AdsDummy_msg_init, 0, arena, &ptr, len);
+  return ptr;
+}
+UPB_INLINE char* envoy_service_discovery_v3_AdsDummy_serialize_ex(const envoy_service_discovery_v3_AdsDummy* msg, int options,
+                                 upb_Arena* arena, size_t* len) {
+  char* ptr;
+  (void)upb_Encode(msg, &envoy_service_discovery_v3_AdsDummy_msg_init, options, arena, &ptr, len);
+  return ptr;
 }
 
 
+extern const upb_MiniTableFile envoy_service_discovery_v3_ads_proto_upb_file_layout;
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 
 #endif  /* ENVOY_SERVICE_DISCOVERY_V3_ADS_PROTO_UPB_H_ */

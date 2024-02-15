@@ -9,27 +9,28 @@
 #ifndef ENVOY_CONFIG_CLUSTER_V3_FILTER_PROTO_UPBDEFS_H_
 #define ENVOY_CONFIG_CLUSTER_V3_FILTER_PROTO_UPBDEFS_H_
 
-#include "upb/def.h"
-#include "upb/port_def.inc"
+#include "upb/reflection/def.h"
+#include "upb/reflection/def_pool_internal.h"
+#include "upb/port/def.inc"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "upb/def.h"
+#include "upb/reflection/def.h"
 
-#include "upb/port_def.inc"
+#include "upb/port/def.inc"
 
-extern upb_def_init envoy_config_cluster_v3_filter_proto_upbdefinit;
+extern _upb_DefPool_Init envoy_config_cluster_v3_filter_proto_upbdefinit;
 
-UPB_INLINE const upb_msgdef *envoy_config_cluster_v3_Filter_getmsgdef(upb_symtab *s) {
-  _upb_symtab_loaddefinit(s, &envoy_config_cluster_v3_filter_proto_upbdefinit);
-  return upb_symtab_lookupmsg(s, "envoy.config.cluster.v3.Filter");
+UPB_INLINE const upb_MessageDef *envoy_config_cluster_v3_Filter_getmsgdef(upb_DefPool *s) {
+  _upb_DefPool_LoadDefInit(s, &envoy_config_cluster_v3_filter_proto_upbdefinit);
+  return upb_DefPool_FindMessageByName(s, "envoy.config.cluster.v3.Filter");
 }
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 
 #endif  /* ENVOY_CONFIG_CLUSTER_V3_FILTER_PROTO_UPBDEFS_H_ */
