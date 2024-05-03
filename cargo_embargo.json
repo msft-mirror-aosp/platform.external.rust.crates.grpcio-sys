@@ -3,7 +3,6 @@
     "//apex_available:platform",
     "com.android.btservices"
   ],
-  "extra_cfg": ["soong"],
   "features": [
     "boringssl",
     "_gen-bindings"
