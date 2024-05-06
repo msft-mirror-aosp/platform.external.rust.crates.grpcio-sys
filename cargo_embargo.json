@@ -5,7 +5,8 @@
   ],
   "features": [
     "boringssl",
-    "_gen-bindings"
+    "_gen-bindings",
+    "_libz-sys"
   ],
   "min_sdk_version": "29",
   "package": {
