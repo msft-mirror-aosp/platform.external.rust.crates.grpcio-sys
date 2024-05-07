@@ -3,10 +3,10 @@
     "//apex_available:platform",
     "com.android.btservices"
   ],
-  "extra_cfg": ["soong"],
   "features": [
     "boringssl",
-    "_gen-bindings"
+    "_gen-bindings",
+    "_libz-sys"
   ],
   "min_sdk_version": "29",
   "package": {
@@ -74,6 +74,5 @@
       "patch": "patches/Android.bp.patch"
     }
   },
-  "product_available": false,
   "run_cargo": false
 }
