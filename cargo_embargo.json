@@ -74,6 +74,5 @@
       "patch": "patches/Android.bp.patch"
     }
   },
-  "product_available": false,
   "run_cargo": false
 }
