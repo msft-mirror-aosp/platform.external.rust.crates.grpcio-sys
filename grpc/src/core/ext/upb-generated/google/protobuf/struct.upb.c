@@ -7,73 +7,112 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "google/protobuf/struct.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout *const google_protobuf_Struct_submsgs[1] = {
-  &google_protobuf_Struct_FieldsEntry_msginit,
+static const upb_MiniTableSub google_protobuf_Struct_submsgs[1] = {
+  {.submsg = &google_protobuf_Struct_FieldsEntry_msg_init},
 };
 
-static const upb_msglayout_field google_protobuf_Struct__fields[1] = {
-  {1, UPB_SIZE(0, 0), 0, 0, 11, _UPB_LABEL_MAP},
+static const upb_MiniTableField google_protobuf_Struct__fields[1] = {
+  {1, 0, 0, 0, 11, kUpb_FieldMode_Map | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout google_protobuf_Struct_msginit = {
+const upb_MiniTable google_protobuf_Struct_msg_init = {
   &google_protobuf_Struct_submsgs[0],
   &google_protobuf_Struct__fields[0],
-  UPB_SIZE(8, 8), 1, false, 255,
+  8, 1, kUpb_ExtMode_NonExtendable, 1, UPB_FASTTABLE_MASK(255), 0,
 };
 
-static const upb_msglayout *const google_protobuf_Struct_FieldsEntry_submsgs[1] = {
-  &google_protobuf_Value_msginit,
+static const upb_MiniTableSub google_protobuf_Struct_FieldsEntry_submsgs[1] = {
+  {.submsg = &google_protobuf_Value_msg_init},
 };
 
-static const upb_msglayout_field google_protobuf_Struct_FieldsEntry__fields[2] = {
-  {1, UPB_SIZE(0, 0), 0, 0, 9, 1},
-  {2, UPB_SIZE(8, 16), 0, 0, 11, 1},
+static const upb_MiniTableField google_protobuf_Struct_FieldsEntry__fields[2] = {
+  {1, 8, 0, kUpb_NoSub, 12, kUpb_FieldMode_Scalar | kUpb_LabelFlags_IsAlternate | (kUpb_FieldRep_StringView << kUpb_FieldRep_Shift)},
+  {2, UPB_SIZE(16, 24), 1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout google_protobuf_Struct_FieldsEntry_msginit = {
+const upb_MiniTable google_protobuf_Struct_FieldsEntry_msg_init = {
   &google_protobuf_Struct_FieldsEntry_submsgs[0],
   &google_protobuf_Struct_FieldsEntry__fields[0],
-  UPB_SIZE(16, 32), 2, false, 255,
+  UPB_SIZE(24, 40), 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800003f00000a, &upb_pss_1bt},
+    {0x0018000001000012, &upb_psm_1bt_max64b},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-static const upb_msglayout *const google_protobuf_Value_submsgs[2] = {
-  &google_protobuf_ListValue_msginit,
-  &google_protobuf_Struct_msginit,
+static const upb_MiniTableSub google_protobuf_Value_submsgs[2] = {
+  {.submsg = &google_protobuf_Struct_msg_init},
+  {.submsg = &google_protobuf_ListValue_msg_init},
 };
 
-static const upb_msglayout_field google_protobuf_Value__fields[6] = {
-  {1, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 0, 14, 1},
-  {2, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 0, 1, 1},
-  {3, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 0, 9, 1},
-  {4, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 0, 8, 1},
-  {5, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 1, 11, 1},
-  {6, UPB_SIZE(0, 0), UPB_SIZE(-9, -17), 0, 11, 1},
+static const upb_MiniTableField google_protobuf_Value__fields[6] = {
+  {1, 8, -1, kUpb_NoSub, 5, kUpb_FieldMode_Scalar | kUpb_LabelFlags_IsAlternate | (kUpb_FieldRep_4Byte << kUpb_FieldRep_Shift)},
+  {2, 8, -1, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)},
+  {3, 8, -1, kUpb_NoSub, 9, kUpb_FieldMode_Scalar | (kUpb_FieldRep_StringView << kUpb_FieldRep_Shift)},
+  {4, 8, -1, kUpb_NoSub, 8, kUpb_FieldMode_Scalar | (kUpb_FieldRep_1Byte << kUpb_FieldRep_Shift)},
+  {5, 8, -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
+  {6, 8, -1, 1, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout google_protobuf_Value_msginit = {
+const upb_MiniTable google_protobuf_Value_msg_init = {
   &google_protobuf_Value_submsgs[0],
   &google_protobuf_Value__fields[0],
-  UPB_SIZE(16, 32), 6, false, 255,
+  UPB_SIZE(16, 24), 6, kUpb_ExtMode_NonExtendable, 6, UPB_FASTTABLE_MASK(56), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x0008000001000008, &upb_pov4_1bt},
+    {0x0008000002000011, &upb_pof8_1bt},
+    {0x000800000300001a, &upb_pos_1bt},
+    {0x0008000004000020, &upb_pob1_1bt},
+    {0x000800000500002a, &upb_pom_1bt_max64b},
+    {0x0008000006010032, &upb_pom_1bt_max64b},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-static const upb_msglayout *const google_protobuf_ListValue_submsgs[1] = {
-  &google_protobuf_Value_msginit,
+static const upb_MiniTableSub google_protobuf_ListValue_submsgs[1] = {
+  {.submsg = &google_protobuf_Value_msg_init},
 };
 
-static const upb_msglayout_field google_protobuf_ListValue__fields[1] = {
-  {1, UPB_SIZE(0, 0), 0, 0, 11, 3},
+static const upb_MiniTableField google_protobuf_ListValue__fields[1] = {
+  {1, 0, 0, 0, 11, kUpb_FieldMode_Array | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout google_protobuf_ListValue_msginit = {
+const upb_MiniTable google_protobuf_ListValue_msg_init = {
   &google_protobuf_ListValue_submsgs[0],
   &google_protobuf_ListValue__fields[0],
-  UPB_SIZE(8, 8), 1, false, 255,
+  8, 1, kUpb_ExtMode_NonExtendable, 1, UPB_FASTTABLE_MASK(8), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000000003f00000a, &upb_prm_1bt_max64b},
+  })
 };
 
-#include "upb/port_undef.inc"
+static const upb_MiniTable *messages_layout[4] = {
+  &google_protobuf_Struct_msg_init,
+  &google_protobuf_Struct_FieldsEntry_msg_init,
+  &google_protobuf_Value_msg_init,
+  &google_protobuf_ListValue_msg_init,
+};
+
+const upb_MiniTableFile google_protobuf_struct_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  4,
+  0,
+  0,
+};
+
+#include "upb/port/undef.inc"
 

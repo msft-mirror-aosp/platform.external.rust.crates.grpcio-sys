@@ -1,41 +1,45 @@
-/*
- * Copyright 2018 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+//
+// Copyright 2018 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//
 
-#include <grpcpp/alarm.h>
-
-#include <memory>
-
-#include <grpc/support/log.h>
 #include <grpc/support/port_platform.h>
+
+#include <functional>
+#include <utility>
+
+#include <grpc/grpc.h>
+#include <grpc/support/log.h>
+#include <grpc/support/sync.h>
+#include <grpc/support/time.h>
+#include <grpcpp/alarm.h>
 #include <grpcpp/completion_queue.h>
-#include <grpcpp/impl/grpc_library.h>
-#include <grpcpp/support/time.h>
+#include <grpcpp/impl/completion_queue_tag.h>
+
+#include "src/core/lib/gprpp/time.h"
+#include "src/core/lib/iomgr/closure.h"
+#include "src/core/lib/iomgr/error.h"
 #include "src/core/lib/iomgr/exec_ctx.h"
 #include "src/core/lib/iomgr/executor.h"
 #include "src/core/lib/iomgr/timer.h"
 #include "src/core/lib/surface/completion_queue.h"
 
-#include <grpc/support/log.h>
-#include "src/core/lib/debug/trace.h"
-
 namespace grpc {
 
 namespace internal {
-class AlarmImpl : public ::grpc::internal::CompletionQueueTag {
+class AlarmImpl : public grpc::internal::CompletionQueueTag {
  public:
   AlarmImpl() : cq_(nullptr), tag_(nullptr) {
     gpr_ref_init(&refs_, 1);
@@ -47,7 +51,7 @@ class AlarmImpl : public ::grpc::internal::CompletionQueueTag {
     Unref();
     return true;
   }
-  void Set(::grpc::CompletionQueue* cq, gpr_timespec deadline, void* tag) {
+  void Set(grpc::CompletionQueue* cq, gpr_timespec deadline, void* tag) {
     grpc_core::ApplicationCallbackExecCtx callback_exec_ctx;
     grpc_core::ExecCtx exec_ctx;
     GRPC_CQ_INTERNAL_REF(cq->cq(), "alarm");
@@ -71,7 +75,8 @@ class AlarmImpl : public ::grpc::internal::CompletionQueueTag {
           GRPC_CQ_INTERNAL_UNREF(cq, "alarm");
         },
         this, grpc_schedule_on_exec_ctx);
-    grpc_timer_init(&timer_, grpc_timespec_to_millis_round_up(deadline),
+    grpc_timer_init(&timer_,
+                    grpc_core::Timestamp::FromTimespecRoundUp(deadline),
                     &on_alarm_);
   }
   void Set(gpr_timespec deadline, std::function<void(bool)> f) {
@@ -83,18 +88,19 @@ class AlarmImpl : public ::grpc::internal::CompletionQueueTag {
     GRPC_CLOSURE_INIT(
         &on_alarm_,
         [](void* arg, grpc_error_handle error) {
-          grpc_core::Executor::Run(
-              GRPC_CLOSURE_CREATE(
-                  [](void* arg, grpc_error_handle error) {
-                    AlarmImpl* alarm = static_cast<AlarmImpl*>(arg);
-                    alarm->callback_(error == GRPC_ERROR_NONE);
-                    alarm->Unref();
-                  },
-                  arg, nullptr),
-              error);
+          grpc_core::Executor::Run(GRPC_CLOSURE_CREATE(
+                                       [](void* arg, grpc_error_handle error) {
+                                         AlarmImpl* alarm =
+                                             static_cast<AlarmImpl*>(arg);
+                                         alarm->callback_(error.ok());
+                                         alarm->Unref();
+                                       },
+                                       arg, nullptr),
+                                   error);
         },
         this, grpc_schedule_on_exec_ctx);
-    grpc_timer_init(&timer_, grpc_timespec_to_millis_round_up(deadline),
+    grpc_timer_init(&timer_,
+                    grpc_core::Timestamp::FromTimespecRoundUp(deadline),
                     &on_alarm_);
   }
   void Cancel() {
@@ -126,13 +132,9 @@ class AlarmImpl : public ::grpc::internal::CompletionQueueTag {
 };
 }  // namespace internal
 
-static ::grpc::internal::GrpcLibraryInitializer g_gli_initializer;
+Alarm::Alarm() : alarm_(new internal::AlarmImpl()) {}
 
-Alarm::Alarm() : alarm_(new internal::AlarmImpl()) {
-  g_gli_initializer.summon();
-}
-
-void Alarm::SetInternal(::grpc::CompletionQueue* cq, gpr_timespec deadline,
+void Alarm::SetInternal(grpc::CompletionQueue* cq, gpr_timespec deadline,
                         void* tag) {
   // Note that we know that alarm_ is actually an internal::AlarmImpl
   // but we declared it as the base pointer to avoid a forward declaration

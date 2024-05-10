@@ -1,3 +1,16 @@
+# Copyright 2021 The gRPC Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Generates and compiles C++ grpc stubs from proto_library rules."""
 
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -61,7 +74,8 @@ def cc_grpc_library(
         cc_proto_target = name if proto_only else "_" + name + "_cc_proto"
 
         proto_deps = ["_" + dep + "_only" for dep in deps if dep.find(":") == -1]
-        proto_deps += [dep.split(":")[0] + ":" + "_" + dep.split(":")[1] + "_only" for dep in deps if dep.find(":") != -1]
+        proto_deps += [dep.split(":")[0] + ":" + "_" + dep.split(":")[1] + "_only" for dep in deps if dep.find(":") != -1 and dep.find("com_google_googleapis") == -1]
+        proto_deps += [dep for dep in deps if dep.find("com_google_googleapis") != -1]
         if well_known_protos:
             proto_deps += well_known_proto_libs()
         proto_library(

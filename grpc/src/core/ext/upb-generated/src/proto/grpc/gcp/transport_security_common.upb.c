@@ -7,36 +7,66 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "src/proto/grpc/gcp/transport_security_common.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout *const grpc_gcp_RpcProtocolVersions_submsgs[1] = {
-  &grpc_gcp_RpcProtocolVersions_Version_msginit,
+static const upb_MiniTableSub grpc_gcp_RpcProtocolVersions_submsgs[2] = {
+  {.submsg = &grpc_gcp_RpcProtocolVersions_Version_msg_init},
+  {.submsg = &grpc_gcp_RpcProtocolVersions_Version_msg_init},
 };
 
-static const upb_msglayout_field grpc_gcp_RpcProtocolVersions__fields[2] = {
-  {1, UPB_SIZE(4, 8), 1, 0, 11, 1},
-  {2, UPB_SIZE(8, 16), 2, 0, 11, 1},
+static const upb_MiniTableField grpc_gcp_RpcProtocolVersions__fields[2] = {
+  {1, UPB_SIZE(4, 8), 1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
+  {2, UPB_SIZE(8, 16), 2, 1, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout grpc_gcp_RpcProtocolVersions_msginit = {
+const upb_MiniTable grpc_gcp_RpcProtocolVersions_msg_init = {
   &grpc_gcp_RpcProtocolVersions_submsgs[0],
   &grpc_gcp_RpcProtocolVersions__fields[0],
-  UPB_SIZE(16, 24), 2, false, 255,
+  UPB_SIZE(16, 24), 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800000100000a, &upb_psm_1bt_max64b},
+    {0x0010000002010012, &upb_psm_1bt_max64b},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-static const upb_msglayout_field grpc_gcp_RpcProtocolVersions_Version__fields[2] = {
-  {1, UPB_SIZE(0, 0), 0, 0, 13, 1},
-  {2, UPB_SIZE(4, 4), 0, 0, 13, 1},
+static const upb_MiniTableField grpc_gcp_RpcProtocolVersions_Version__fields[2] = {
+  {1, 0, 0, kUpb_NoSub, 13, kUpb_FieldMode_Scalar | (kUpb_FieldRep_4Byte << kUpb_FieldRep_Shift)},
+  {2, 4, 0, kUpb_NoSub, 13, kUpb_FieldMode_Scalar | (kUpb_FieldRep_4Byte << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout grpc_gcp_RpcProtocolVersions_Version_msginit = {
+const upb_MiniTable grpc_gcp_RpcProtocolVersions_Version_msg_init = {
   NULL,
   &grpc_gcp_RpcProtocolVersions_Version__fields[0],
-  UPB_SIZE(8, 8), 2, false, 255,
+  8, 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000000003f000008, &upb_psv4_1bt},
+    {0x000400003f000010, &upb_psv4_1bt},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-#include "upb/port_undef.inc"
+static const upb_MiniTable *messages_layout[2] = {
+  &grpc_gcp_RpcProtocolVersions_msg_init,
+  &grpc_gcp_RpcProtocolVersions_Version_msg_init,
+};
+
+const upb_MiniTableFile src_proto_grpc_gcp_transport_security_common_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  2,
+  0,
+  0,
+};
+
+#include "upb/port/undef.inc"
 
