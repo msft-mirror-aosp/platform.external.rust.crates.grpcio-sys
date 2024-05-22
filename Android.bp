@@ -42,17 +42,17 @@ rust_library {
     crate_name: "grpcio_sys",
     cargo_env_compat: true,
     cargo_pkg_version: "0.13.0+1.56.2-patched",
-    srcs: [
-        "src/lib.rs",
-        ":libgrpc_bindgen",
-    ],
+    crate_root: "src/lib.rs",
+    srcs: [":libgrpc_bindgen"],
     edition: "2018",
     features: [
         "_gen-bindings",
+        "_libz-sys",
         "_secure",
         "bindgen",
         "boringssl",
         "boringssl-src",
+        "libz-sys",
     ],
     rustlibs: [
         "liblibc",
@@ -62,6 +62,7 @@ rust_library {
         "//apex_available:platform",
         "com.android.btservices",
     ],
+    product_available: true,
     vendor_available: true,
     min_sdk_version: "29",
     shared_libs: [
@@ -82,7 +83,7 @@ cc_defaults {
         "//apex_available:platform",
         "com.android.btservices",
     ],
-    product_available: false,
+    product_available: true,
     vendor_available: true,
     min_sdk_version: "29",
 }
