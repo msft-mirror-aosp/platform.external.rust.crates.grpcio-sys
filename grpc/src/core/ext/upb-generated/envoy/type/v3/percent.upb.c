@@ -7,34 +7,61 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "envoy/type/v3/percent.upb.h"
 #include "udpa/annotations/status.upb.h"
 #include "udpa/annotations/versioning.upb.h"
 #include "validate/validate.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout_field envoy_type_v3_Percent__fields[1] = {
-  {1, UPB_SIZE(0, 0), 0, 0, 1, 1},
+static const upb_MiniTableField envoy_type_v3_Percent__fields[1] = {
+  {1, 0, 0, kUpb_NoSub, 1, kUpb_FieldMode_Scalar | (kUpb_FieldRep_8Byte << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout envoy_type_v3_Percent_msginit = {
+const upb_MiniTable envoy_type_v3_Percent_msg_init = {
   NULL,
   &envoy_type_v3_Percent__fields[0],
-  UPB_SIZE(8, 8), 1, false, 255,
+  8, 1, kUpb_ExtMode_NonExtendable, 1, UPB_FASTTABLE_MASK(8), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000000003f000009, &upb_psf8_1bt},
+  })
 };
 
-static const upb_msglayout_field envoy_type_v3_FractionalPercent__fields[2] = {
-  {1, UPB_SIZE(4, 4), 0, 0, 13, 1},
-  {2, UPB_SIZE(0, 0), 0, 0, 14, 1},
+static const upb_MiniTableField envoy_type_v3_FractionalPercent__fields[2] = {
+  {1, 0, 0, kUpb_NoSub, 13, kUpb_FieldMode_Scalar | (kUpb_FieldRep_4Byte << kUpb_FieldRep_Shift)},
+  {2, 4, 0, kUpb_NoSub, 5, kUpb_FieldMode_Scalar | kUpb_LabelFlags_IsAlternate | (kUpb_FieldRep_4Byte << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout envoy_type_v3_FractionalPercent_msginit = {
+const upb_MiniTable envoy_type_v3_FractionalPercent_msg_init = {
   NULL,
   &envoy_type_v3_FractionalPercent__fields[0],
-  UPB_SIZE(8, 8), 2, false, 255,
+  8, 2, kUpb_ExtMode_NonExtendable, 2, UPB_FASTTABLE_MASK(24), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000000003f000008, &upb_psv4_1bt},
+    {0x000400003f000010, &upb_psv4_1bt},
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+  })
 };
 
-#include "upb/port_undef.inc"
+static const upb_MiniTable *messages_layout[2] = {
+  &envoy_type_v3_Percent_msg_init,
+  &envoy_type_v3_FractionalPercent_msg_init,
+};
+
+const upb_MiniTableFile envoy_type_v3_percent_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  2,
+  0,
+  0,
+};
+
+#include "upb/port/undef.inc"
 

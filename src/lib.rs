@@ -5,9 +5,11 @@
 #![allow(non_upper_case_globals)]
 #[allow(clippy::all)]
 mod bindings {
-    //include!(env!("BINDING_PATH"));
+    #[cfg(not(soong))]
+    include!(env!("BINDING_PATH"));
     // ANDROID's build system doesn't support environment variables
     // so we hardcode the output location of the bindings here.
+    #[cfg(soong)]
     include!(concat!(env!("OUT_DIR"), "/grpc-bindings.rs"));
 }
 mod grpc_wrap;

@@ -53,6 +53,25 @@ include_directories(..)
 include_directories(../cmake)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+if(NOT TARGET utf8_range)
+  if(EXISTS ../external/utf8_range)
+    # utf8_range is already installed
+    include_directories(../external/utf8_range)
+  else()
+    include(FetchContent)
+    FetchContent_Declare(
+      utf8_range
+      GIT_REPOSITORY "https://github.com/protocolbuffers/utf8_range.git"
+      GIT_TAG "de0b4a8ff9b5d4c98108bdfe723291a33c52c54f"
+    )
+    FetchContent_GetProperties(utf8_range)
+    if(NOT utf8_range_POPULATED)
+      FetchContent_Populate(utf8_range)
+      include_directories(${utf8_range_SOURCE_DIR})
+    endif()
+  endif()
+endif()
+
 if(APPLE)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup -flat_namespace")
 elseif(UNIX)
@@ -62,104 +81,267 @@ endif()
 enable_testing()
 
 add_library(port INTERFACE)
-add_library(upb
-  ../upb/decode.c
-  ../upb/decode.int.h
-  ../upb/encode.c
-  ../upb/msg.c
-  ../upb/msg.h
-  ../upb/table.c
-  ../upb/table.int.h
-  ../upb/upb.c
-  ../upb/upb.int.h
-  ../upb/decode.h
-  ../upb/encode.h
-  ../upb/upb.h
-  ../upb/upb.hpp)
-target_link_libraries(upb
+add_library(upb INTERFACE)
+target_link_libraries(upb INTERFACE
+  base
+  collections_internal
   fastdecode
+  hash
+  lex
+  mem
+  message_internal
+  mini_table_internal
   port
-  /third_party/wyhash)
-add_library(fastdecode
-  ../upb/decode.int.h
-  ../upb/decode_fast.c
-  ../upb/decode_fast.h
-  ../upb/msg.h
-  ../upb/upb.int.h)
-target_link_libraries(fastdecode
+  wire)
+add_library(base
+  ../upb/base/status.c
+  ../upb/base/descriptor_constants.h
+  ../upb/base/log2.h
+  ../upb/base/status.h
+  ../upb/base/string_view.h)
+target_link_libraries(base
+  port)
+add_library(mini_table INTERFACE)
+target_link_libraries(mini_table INTERFACE
+  base
+  mem
+  mini_table_internal
+  port)
+add_library(mini_table_internal
+  ../upb/mini_table/common.c
+  ../upb/mini_table/decode.c
+  ../upb/mini_table/encode.c
+  ../upb/mini_table/extension_registry.c
+  ../upb/mini_table/common.h
+  ../upb/mini_table/common_internal.h
+  ../upb/mini_table/decode.h
+  ../upb/mini_table/encode_internal.h
+  ../upb/mini_table/encode_internal.hpp
+  ../upb/mini_table/enum_internal.h
+  ../upb/mini_table/extension_internal.h
+  ../upb/mini_table/extension_registry.h
+  ../upb/mini_table/field_internal.h
+  ../upb/mini_table/file_internal.h
+  ../upb/mini_table/message_internal.h
+  ../upb/mini_table/sub_internal.h
+  ../upb/mini_table/types.h)
+target_link_libraries(mini_table_internal
+  base
+  hash
+  mem
+  port)
+add_library(message INTERFACE)
+target_link_libraries(message INTERFACE
+  mem
+  message_internal
+  mini_table
+  port)
+add_library(message_internal
+  ../upb/message/message.c
+  ../upb/message/extension_internal.h
+  ../upb/message/internal.h
+  ../upb/message/message.h)
+target_link_libraries(message_internal
+  base
+  hash
+  mem
+  mini_table_internal
+  port)
+add_library(message_accessors
+  ../upb/message/accessors.c
+  ../upb/message/accessors_internal.h
+  ../upb/message/accessors.h)
+target_link_libraries(message_accessors
+  collections_internal
+  eps_copy_input_stream
+  hash
+  message_internal
+  mini_table_internal
   port
-  table)
+  upb
+  wire
+  wire_reader)
+add_library(message_promote
+  ../upb/message/promote.c
+  ../upb/message/promote.h)
+target_link_libraries(message_promote
+  collections_internal
+  eps_copy_input_stream
+  hash
+  message_accessors
+  message_internal
+  mini_table_internal
+  port
+  upb
+  wire
+  wire_reader)
+add_library(message_copy
+  ../upb/message/copy.c
+  ../upb/message/copy.h)
+target_link_libraries(message_copy
+  collections_internal
+  message_accessors
+  message_internal
+  mini_table_internal
+  port
+  upb)
+add_library(fastdecode INTERFACE)
+target_link_libraries(fastdecode INTERFACE
+  base
+  collections_internal
+  hash
+  mem_internal
+  message_internal
+  mini_table_internal
+  port
+  wire)
 add_library(generated_code_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE)
 target_link_libraries(generated_code_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE
-  table
+  base
+  collections_internal
+  hash
   upb)
-add_library(reflection
-  ../upb/def.c
-  ../upb/msg.h
-  ../upb/reflection.c
-  ../upb/def.h
-  ../upb/def.hpp
-  ../upb/reflection.h)
-target_link_libraries(reflection
+add_library(generated_cpp_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE)
+target_link_libraries(generated_cpp_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE
+  base
+  collections_internal
+  hash
+  message_copy
+  mini_table
+  upb)
+add_library(generated_reflection_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE)
+target_link_libraries(generated_reflection_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me INTERFACE
+  base
   descriptor_upb_proto
-  port
-  table
-  upb)
+  hash
+  mini_table_internal
+  reflection_internal)
+add_library(collections INTERFACE)
+target_link_libraries(collections INTERFACE
+  base
+  collections_internal
+  mem
+  port)
+add_library(collections_internal
+  ../upb/collections/array.c
+  ../upb/collections/map.c
+  ../upb/collections/map_sorter.c
+  ../upb/collections/array.h
+  ../upb/collections/array_internal.h
+  ../upb/collections/map.h
+  ../upb/collections/map_gencode_util.h
+  ../upb/collections/map_internal.h
+  ../upb/collections/map_sorter_internal.h
+  ../upb/collections/message_value.h)
+target_link_libraries(collections_internal
+  base
+  hash
+  mem
+  message_internal
+  mini_table_internal
+  port)
 add_library(textformat
-  ../upb/text_encode.c
+  ../upb/text/encode.c
+  ../upb/text/encode.h
   ../upb/text_encode.h)
 target_link_libraries(textformat
+  collections_internal
+  eps_copy_input_stream
+  lex
   port
-  reflection)
+  reflection
+  wire
+  wire_reader
+  wire_types)
 add_library(json
-  ../upb/json_decode.c
-  ../upb/json_encode.c
+  ../upb/json/decode.c
+  ../upb/json/encode.c
+  ../upb/json/decode.h
+  ../upb/json/encode.h
   ../upb/json_decode.h
   ../upb/json_encode.h)
 target_link_libraries(json
+  collections
+  lex
   port
   reflection
   upb)
-add_library(table INTERFACE)
-target_link_libraries(table INTERFACE
+add_library(mem INTERFACE)
+target_link_libraries(mem INTERFACE
+  mem_internal
   port)
-add_library(handlers
-  ../upb/handlers.c
-  ../upb/handlers-inl.h
-  ../upb/sink.c
-  ../upb/handlers.h
-  ../upb/sink.h)
-target_link_libraries(handlers
+add_library(mem_internal
+  ../upb/mem/alloc.c
+  ../upb/mem/arena.c
+  ../upb/mem/alloc.h
+  ../upb/mem/arena.h
+  ../upb/mem/arena_internal.h)
+target_link_libraries(mem_internal
+  port)
+add_library(wire INTERFACE)
+target_link_libraries(wire INTERFACE
+  mem
+  message_internal
+  mini_table_internal
   port
-  reflection
-  table
-  upb)
-add_library(upb_pb
-  ../upb/pb/compile_decoder.c
-  ../upb/pb/decoder.c
-  ../upb/pb/decoder.int.h
-  ../upb/pb/encoder.c
-  ../upb/pb/textprinter.c
-  ../upb/pb/varint.c
-  ../upb/pb/varint.int.h
-  ../upb/pb/decoder.h
-  ../upb/pb/encoder.h
-  ../upb/pb/textprinter.h)
-target_link_libraries(upb_pb
-  descriptor_upb_proto
-  handlers
+  wire_internal)
+add_library(wire_internal
+  ../upb/wire/decode.c
+  ../upb/wire/decode_fast.c
+  ../upb/wire/encode.c
+  ../upb/wire/common.h
+  ../upb/wire/common_internal.h
+  ../upb/wire/decode.h
+  ../upb/wire/decode_fast.h
+  ../upb/wire/decode_internal.h
+  ../upb/wire/encode.h
+  ../upb/wire/swap_internal.h)
+target_link_libraries(wire_internal
+  base
+  collections_internal
+  eps_copy_input_stream
+  hash
+  mem_internal
+  message_internal
+  mini_table_internal
   port
-  reflection
-  table
-  upb)
-add_library(upb_json
-  ../cmake/upb/json/parser.c
-  ../upb/json/printer.c
-  ../upb/json/parser.h
-  ../upb/json/printer.h)
-target_link_libraries(upb_json
-  upb
-  upb_pb)
-add_library(wyhash INTERFACE)
+  wire_reader
+  wire_types
+  utf8_range)
+add_library(wire_types INTERFACE)
+add_library(eps_copy_input_stream
+  ../upb/wire/eps_copy_input_stream.c
+  ../upb/wire/eps_copy_input_stream.h)
+target_link_libraries(eps_copy_input_stream
+  mem
+  port)
+add_library(wire_reader
+  ../upb/wire/reader.c
+  ../upb/wire/swap_internal.h
+  ../upb/wire/reader.h)
+target_link_libraries(wire_reader
+  eps_copy_input_stream
+  port
+  wire_types)
+add_library(hash
+  ../upb/hash/common.c
+  ../upb/hash/common.h
+  ../upb/hash/int_table.h
+  ../upb/hash/str_table.h)
+target_link_libraries(hash
+  base
+  mem
+  port)
+add_library(lex
+  ../upb/lex/atoi.c
+  ../upb/lex/round_trip.c
+  ../upb/lex/strtod.c
+  ../upb/lex/unicode.c
+  ../upb/lex/atoi.h
+  ../upb/lex/round_trip.h
+  ../upb/lex/strtod.h
+  ../upb/lex/unicode.h)
+target_link_libraries(lex
+  port)
 
 

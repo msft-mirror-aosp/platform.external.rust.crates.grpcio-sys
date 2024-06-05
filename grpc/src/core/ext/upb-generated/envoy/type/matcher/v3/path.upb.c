@@ -7,28 +7,48 @@
  * regenerated. */
 
 #include <stddef.h>
-#include "upb/msg.h"
+#include "upb/collections/array_internal.h"
+#include "upb/message/internal.h"
+#include "upb/mini_table/enum_internal.h"
 #include "envoy/type/matcher/v3/path.upb.h"
 #include "envoy/type/matcher/v3/string.upb.h"
 #include "udpa/annotations/status.upb.h"
 #include "udpa/annotations/versioning.upb.h"
 #include "validate/validate.upb.h"
 
-#include "upb/port_def.inc"
+// Must be last.
+#include "upb/port/def.inc"
 
-static const upb_msglayout *const envoy_type_matcher_v3_PathMatcher_submsgs[1] = {
-  &envoy_type_matcher_v3_StringMatcher_msginit,
+static const upb_MiniTableSub envoy_type_matcher_v3_PathMatcher_submsgs[1] = {
+  {.submsg = &envoy_type_matcher_v3_StringMatcher_msg_init},
 };
 
-static const upb_msglayout_field envoy_type_matcher_v3_PathMatcher__fields[1] = {
-  {1, UPB_SIZE(0, 0), UPB_SIZE(-5, -9), 0, 11, 1},
+static const upb_MiniTableField envoy_type_matcher_v3_PathMatcher__fields[1] = {
+  {1, UPB_SIZE(4, 8), -1, 0, 11, kUpb_FieldMode_Scalar | (UPB_SIZE(kUpb_FieldRep_4Byte, kUpb_FieldRep_8Byte) << kUpb_FieldRep_Shift)},
 };
 
-const upb_msglayout envoy_type_matcher_v3_PathMatcher_msginit = {
+const upb_MiniTable envoy_type_matcher_v3_PathMatcher_msg_init = {
   &envoy_type_matcher_v3_PathMatcher_submsgs[0],
   &envoy_type_matcher_v3_PathMatcher__fields[0],
-  UPB_SIZE(8, 16), 1, false, 255,
+  UPB_SIZE(8, 16), 1, kUpb_ExtMode_NonExtendable, 1, UPB_FASTTABLE_MASK(8), 0,
+  UPB_FASTTABLE_INIT({
+    {0x0000000000000000, &_upb_FastDecoder_DecodeGeneric},
+    {0x000800000100000a, &upb_pom_1bt_maxmaxb},
+  })
 };
 
-#include "upb/port_undef.inc"
+static const upb_MiniTable *messages_layout[1] = {
+  &envoy_type_matcher_v3_PathMatcher_msg_init,
+};
+
+const upb_MiniTableFile envoy_type_matcher_v3_path_proto_upb_file_layout = {
+  messages_layout,
+  NULL,
+  NULL,
+  1,
+  0,
+  0,
+};
+
+#include "upb/port/undef.inc"
 

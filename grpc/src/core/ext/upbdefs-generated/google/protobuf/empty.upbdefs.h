@@ -9,27 +9,28 @@
 #ifndef GOOGLE_PROTOBUF_EMPTY_PROTO_UPBDEFS_H_
 #define GOOGLE_PROTOBUF_EMPTY_PROTO_UPBDEFS_H_
 
-#include "upb/def.h"
-#include "upb/port_def.inc"
+#include "upb/reflection/def.h"
+#include "upb/reflection/def_pool_internal.h"
+#include "upb/port/def.inc"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "upb/def.h"
+#include "upb/reflection/def.h"
 
-#include "upb/port_def.inc"
+#include "upb/port/def.inc"
 
-extern upb_def_init google_protobuf_empty_proto_upbdefinit;
+extern _upb_DefPool_Init google_protobuf_empty_proto_upbdefinit;
 
-UPB_INLINE const upb_msgdef *google_protobuf_Empty_getmsgdef(upb_symtab *s) {
-  _upb_symtab_loaddefinit(s, &google_protobuf_empty_proto_upbdefinit);
-  return upb_symtab_lookupmsg(s, "google.protobuf.Empty");
+UPB_INLINE const upb_MessageDef *google_protobuf_Empty_getmsgdef(upb_DefPool *s) {
+  _upb_DefPool_LoadDefInit(s, &google_protobuf_empty_proto_upbdefinit);
+  return upb_DefPool_FindMessageByName(s, "google.protobuf.Empty");
 }
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 
 #endif  /* GOOGLE_PROTOBUF_EMPTY_PROTO_UPBDEFS_H_ */

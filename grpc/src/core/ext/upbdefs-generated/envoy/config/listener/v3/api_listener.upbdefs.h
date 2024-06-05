@@ -9,27 +9,28 @@
 #ifndef ENVOY_CONFIG_LISTENER_V3_API_LISTENER_PROTO_UPBDEFS_H_
 #define ENVOY_CONFIG_LISTENER_V3_API_LISTENER_PROTO_UPBDEFS_H_
 
-#include "upb/def.h"
-#include "upb/port_def.inc"
+#include "upb/reflection/def.h"
+#include "upb/reflection/def_pool_internal.h"
+#include "upb/port/def.inc"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "upb/def.h"
+#include "upb/reflection/def.h"
 
-#include "upb/port_def.inc"
+#include "upb/port/def.inc"
 
-extern upb_def_init envoy_config_listener_v3_api_listener_proto_upbdefinit;
+extern _upb_DefPool_Init envoy_config_listener_v3_api_listener_proto_upbdefinit;
 
-UPB_INLINE const upb_msgdef *envoy_config_listener_v3_ApiListener_getmsgdef(upb_symtab *s) {
-  _upb_symtab_loaddefinit(s, &envoy_config_listener_v3_api_listener_proto_upbdefinit);
-  return upb_symtab_lookupmsg(s, "envoy.config.listener.v3.ApiListener");
+UPB_INLINE const upb_MessageDef *envoy_config_listener_v3_ApiListener_getmsgdef(upb_DefPool *s) {
+  _upb_DefPool_LoadDefInit(s, &envoy_config_listener_v3_api_listener_proto_upbdefinit);
+  return upb_DefPool_FindMessageByName(s, "envoy.config.listener.v3.ApiListener");
 }
 
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif
 
-#include "upb/port_undef.inc"
+#include "upb/port/undef.inc"
 
 #endif  /* ENVOY_CONFIG_LISTENER_V3_API_LISTENER_PROTO_UPBDEFS_H_ */
