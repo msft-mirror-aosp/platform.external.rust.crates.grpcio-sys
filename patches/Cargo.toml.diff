@@ -24,7 +24,7 @@ index 5f3f4c25..e17251cf 100644
  
  [build-dependencies.bindgen]
 -version = "0.59.0"
-+version = "0.69.1"
++version = "0.69.4"
  features = ["runtime"]
  optional = true
  default-features = false
@@ -52,4 +52,4 @@ index 5f3f4c25..e17251cf 100644
  
  [target."cfg(not(all(any(target_os = \"linux\", target_os = \"macos\"), any(target_arch = \"x86_64\", target_arch = \"aarch64\"))))".build-dependencies.bindgen]
 -version = "0.59.0"
-+version = "0.69.1"
++version = "0.69.4"
