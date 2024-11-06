@@ -1,4 +1,0 @@
-shared_libs: [
-    "libgrpc++",
-    "libgrpc_wrap"
-]
